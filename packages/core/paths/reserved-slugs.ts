@@ -76,11 +76,17 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   // things). `workspaces` covers the global `/workspaces/new` workspace-creation
   // page; `teams` is reserved for future team management.
   "issues",
+  // Dashboard / workspace route segments. Reserving the segment name
+  // prevents `/{slug}/{view}` from being visually ambiguous (e.g. a
+  // workspace named "tasks" makes `/tasks/abc` mean two things).
+  "issues", // legacy redirect
+  "tasks",
   "projects",
   "autopilots",
   "agents",
   "inbox",
-  "my-issues",
+  "my-issues", // legacy redirect
+  "my-tasks",
   "runtimes",
   "skills",
   "settings",

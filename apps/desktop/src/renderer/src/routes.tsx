@@ -83,18 +83,18 @@ export const appRoutes: RouteObject[] = [
         path: ":workspaceSlug",
         element: <WorkspaceRouteLayout />,
         children: [
-          { index: true, element: <Navigate to="issues" replace /> },
+          { index: true, element: <Navigate to="tasks" replace /> },
+          { path: "issues", element: <Navigate to="tasks" replace /> },
+          { path: "issues/:id", element: <Navigate to="../tasks/:id" replace /> },
+          { path: "tasks",            
+              element: (
+                  <ErrorBoundary>
+                      <IssuesPage />
+                  </ErrorBoundary>
+              ),
+              handle: { title: "Tasks" } },
           {
-            path: "issues",
-            element: (
-              <ErrorBoundary>
-                <IssuesPage />
-              </ErrorBoundary>
-            ),
-            handle: { title: "Issues" },
-          },
-          {
-            path: "issues/:id",
+            path: "tasks/:id",
             element: <IssueDetailPage />,
             handle: { title: "Task" },
           },
@@ -120,6 +120,10 @@ export const appRoutes: RouteObject[] = [
           },
           {
             path: "my-issues",
+            element: <Navigate to="my-tasks" replace />,
+          },
+          {
+            path: "my-tasks",
             element: <MyIssuesPage />,
             handle: { title: "My Tasks" },
           },

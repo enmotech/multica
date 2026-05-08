@@ -1,18 +1,10 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { use } from "react";
-import { IssueDetail } from "@multica/views/issues/components";
-import { ErrorBoundary } from "@multica/ui/components/common/error-boundary";
+interface Props {
+  params: Promise<{ workspaceSlug: string; id: string }>;
+}
 
-export default function IssueDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  return (
-    <ErrorBoundary resetKeys={[id]}>
-      <IssueDetail issueId={id} />
-    </ErrorBoundary>
-  );
+export default async function IssueDetailRedirect({ params }: Props) {
+  const { workspaceSlug, id } = await params;
+  redirect(`/${workspaceSlug}/tasks/${id}`);
 }

@@ -5,7 +5,7 @@ import { paths } from "./paths";
 /**
  * Priority:
  *   !hasOnboarded                         → /onboarding
- *   hasOnboarded && has workspace         → /<first.slug>/issues
+ *   hasOnboarded && has workspace         → /<first.slug>/tasks
  *   hasOnboarded && zero workspaces       → /workspaces/new
  *
  * `onboarded_at` is the single source of truth for whether the user has
