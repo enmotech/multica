@@ -62,9 +62,9 @@ describe("migrateV1ToV2", () => {
   it("groups v1 flat tabs by workspace slug", () => {
     const v1 = {
       tabs: [
-        { id: "t1", path: "/acme/issues", title: "Issues", icon: "ListTodo" },
+        { id: "t1", path: "/acme/issues", title: "Tasks", icon: "ListTodo" },
         { id: "t2", path: "/acme/projects", title: "Projects", icon: "FolderKanban" },
-        { id: "t3", path: "/butter/issues", title: "Issues", icon: "ListTodo" },
+        { id: "t3", path: "/butter/issues", title: "Tasks", icon: "ListTodo" },
       ],
       activeTabId: "t2",
     };
@@ -80,10 +80,10 @@ describe("migrateV1ToV2", () => {
   it("drops tabs at root / transition / reserved-slug paths", () => {
     const v1 = {
       tabs: [
-        { id: "t1", path: "/", title: "Issues", icon: "ListTodo" },
+        { id: "t1", path: "/", title: "Tasks", icon: "ListTodo" },
         { id: "t2", path: "/workspaces/new", title: "New", icon: "Plus" },
         { id: "t3", path: "/invite/abc", title: "Invite", icon: "Mail" },
-        { id: "t4", path: "/acme/issues", title: "Issues", icon: "ListTodo" },
+        { id: "t4", path: "/acme/issues", title: "Tasks", icon: "ListTodo" },
       ],
       activeTabId: "t1",
     };

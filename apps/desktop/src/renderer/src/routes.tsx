@@ -96,7 +96,7 @@ export const appRoutes: RouteObject[] = [
           {
             path: "issues/:id",
             element: <IssueDetailPage />,
-            handle: { title: "Issue" },
+            handle: { title: "Task" },
           },
           {
             path: "projects",
@@ -121,7 +121,7 @@ export const appRoutes: RouteObject[] = [
           {
             path: "my-issues",
             element: <MyIssuesPage />,
-            handle: { title: "My Issues" },
+            handle: { title: "My Tasks" },
           },
           {
             path: "runtimes",

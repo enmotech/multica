@@ -41,24 +41,24 @@
   },
   "notifications": {
     "title": "Inbox Notifications",
-    "description": "Control which events generate inbox notifications. Muted event types are silently filtered — you can still see them by visiting the issue directly.",
+    "description": "Control which events generate inbox notifications. Muted event types are silently filtered — you can still see them by visiting the task directly.",
     "toast_failed": "Failed to update notification settings",
     "groups": {
       "assignments": {
         "label": "Assignments",
-        "description": "When you are assigned or unassigned from an issue"
+        "description": "When you are assigned or unassigned from a task"
       },
       "status_changes": {
         "label": "Status changes",
-        "description": "When an issue you follow changes status (e.g. todo, in progress, done)"
+        "description": "When a task you follow changes status (e.g. todo, in progress, done)"
       },
       "comments": {
         "label": "Comments & Mentions",
-        "description": "New comments on issues you follow, or when someone @mentions you"
+        "description": "New comments on tasks you follow, or when someone @mentions you"
       },
       "updates": {
         "label": "Priority & Due date",
-        "description": "When priority or due date changes on issues you follow"
+        "description": "When priority or due date changes on tasks you follow"
       },
       "agent_activity": {
         "label": "Agent activity",
@@ -140,7 +140,7 @@
   },
   "delete_workspace_dialog": {
     "title": "Delete workspace",
-    "description": "This cannot be undone. All issues, agents, and data will be permanently removed.",
+    "description": "This cannot be undone. All tasks, agents, and data will be permanently removed.",
     "type_to_confirm_prefix": "To confirm, type",
     "type_to_confirm_suffix": " below.",
     "cancel": "Cancel",
@@ -205,7 +205,7 @@
       },
       "member": {
         "label": "Member",
-        "description": "Create and work on issues"
+        "description": "Create and work on tasks"
       }
     }
   }
