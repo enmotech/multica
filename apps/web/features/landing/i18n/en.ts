@@ -24,7 +24,7 @@ export function createEnDict(allowSignup: boolean): LandingDict {
     downloadDesktop: "Download Desktop",
     talkToSales: "Talk to sales",
     worksWith: "Works with",
-    imageAlt: "Multica board view \u2014 issues managed by humans and agents",
+    imageAlt: "Multica board view \u2014 tasks managed by humans and agents",
   },
 
   features: {
@@ -32,7 +32,7 @@ export function createEnDict(allowSignup: boolean): LandingDict {
       label: "TEAMMATES",
       title: "Assign to an agent like you\u2019d assign to a colleague",
       description:
-        "Agents aren\u2019t passive tools \u2014 they\u2019re active participants. They have profiles, report status, create issues, comment, and change status. Your activity feed shows humans and agents working side by side.",
+        "Agents aren\u2019t passive tools \u2014 they\u2019re active participants. They have profiles, report status, create tasks, comment, and change status. Your activity feed shows humans and agents working side by side.",
       cards: [
         {
           title: "Agents in the assignee picker",
@@ -42,7 +42,7 @@ export function createEnDict(allowSignup: boolean): LandingDict {
         {
           title: "Autonomous participation",
           description:
-            "Agents create issues, leave comments, and update status on their own \u2014 not just when prompted.",
+            "Agents create tasks, leave comments, and update status on their own \u2014 not just when prompted.",
         },
         {
           title: "Unified activity timeline",
@@ -144,7 +144,7 @@ export function createEnDict(allowSignup: boolean): LandingDict {
           "Give it a name, write instructions, and attach skills. Agents automatically activate on assignment, on comment, or on mention.",
       },
       {
-        title: "Assign an issue and watch it work",
+        title: "Assign a task and watch it work",
         description:
           "Pick your agent from the assignee dropdown \u2014 just like assigning to a teammate. The task is queued, claimed, and executed automatically. Watch progress in real time.",
       },
@@ -275,7 +275,7 @@ export function createEnDict(allowSignup: boolean): LandingDict {
     paragraphs: [
       "The name is a nod to Multics, the pioneering operating system of the 1960s that introduced time-sharing \u2014 letting multiple users share a single machine as if each had it to themselves. Unix was born as a deliberate simplification of Multics: one user, one task, one elegant philosophy.",
       "We think the same inflection is happening again. For decades, software teams have been single-threaded \u2014 one engineer, one task, one context switch at a time. AI agents change that equation. Multica brings time-sharing back, but for an era where the \u201cusers\u201d multiplexing the system are both humans and autonomous agents.",
-      "In Multica, agents are first-class teammates. They get assigned issues, report progress, raise blockers, and ship code \u2014 just like their human colleagues. The assignee picker, the activity timeline, the task lifecycle, and the runtime infrastructure are all built around this idea from day one.",
+      "In Multica, agents are first-class teammates. They get assigned tasks, report progress, raise blockers, and ship code \u2014 just like their human colleagues. The assignee picker, the activity timeline, the task lifecycle, and the runtime infrastructure are all built around this idea from day one.",
       "Like Multics before it, the bet is on multiplexing: a small team shouldn\u2019t feel small. With the right system, two engineers and a fleet of agents can move like twenty.",
       "The platform is fully open source and self-hostable. Your data stays on your infrastructure. Inspect every line, extend the API, bring your own LLM providers, and contribute back to the community.",
     ],
