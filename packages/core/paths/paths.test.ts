@@ -4,10 +4,10 @@ import { paths, isGlobalPath } from "./paths";
 describe("paths.workspace(slug)", () => {
   const ws = paths.workspace("acme");
 
-  it("builds workspace paths with slug prefix", () => {
+  it("builds dashboard paths with slug prefix", () => {
     expect(ws.usage()).toBe("/acme/usage");
-    expect(ws.issues()).toBe("/acme/issues");
-    expect(ws.issueDetail("abc-123")).toBe("/acme/issues/abc-123");
+    expect(ws.issues()).toBe("/acme/tasks");
+    expect(ws.issueDetail("abc-123")).toBe("/acme/tasks/abc-123");
     expect(ws.projects()).toBe("/acme/projects");
     expect(ws.projectDetail("p1")).toBe("/acme/projects/p1");
     expect(ws.autopilots()).toBe("/acme/autopilots");
@@ -15,7 +15,7 @@ describe("paths.workspace(slug)", () => {
     expect(ws.agents()).toBe("/acme/agents");
     expect(ws.memberDetail("u1")).toBe("/acme/members/u1");
     expect(ws.inbox()).toBe("/acme/inbox");
-    expect(ws.myIssues()).toBe("/acme/my-issues");
+    expect(ws.myIssues()).toBe("/acme/my-tasks");
     expect(ws.runtimes()).toBe("/acme/runtimes");
     expect(ws.skills()).toBe("/acme/skills");
     expect(ws.skillDetail("skl_123")).toBe("/acme/skills/skl_123");
@@ -26,7 +26,7 @@ describe("paths.workspace(slug)", () => {
   });
 
   it("URL-encodes special characters in ids", () => {
-    expect(ws.issueDetail("id with space")).toBe("/acme/issues/id%20with%20space");
+    expect(ws.issueDetail("id with space")).toBe("/acme/tasks/id%20with%20space");
   });
 });
 
@@ -48,7 +48,7 @@ describe("isGlobalPath", () => {
   });
 
   it("returns false for workspace-scoped paths", () => {
-    expect(isGlobalPath("/acme/issues")).toBe(false);
+    expect(isGlobalPath("/acme/tasks")).toBe(false);
     expect(isGlobalPath("/")).toBe(false);
   });
 });

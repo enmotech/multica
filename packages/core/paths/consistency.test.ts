@@ -81,7 +81,7 @@ describe("global path / reserved slug consistency", () => {
     for (const prefix of globalPrefixes) {
       expect(isGlobalPath(prefix)).toBe(true);
     }
-    expect(isGlobalPath("/acme/issues")).toBe(false);
+    expect(isGlobalPath("/acme/tasks")).toBe(false);
     expect(isGlobalPath("/")).toBe(false);
   });
 

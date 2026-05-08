@@ -3,10 +3,11 @@ import { useAuthStore } from "../auth";
 import { paths } from "./paths";
 
 /**
+/**
  * Priority (onboarded-first):
- *   !hasOnboarded               → /onboarding
- *   hasOnboarded + workspace[0] → /<first.slug>/issues
- *   hasOnboarded + no workspace → /workspaces/new
+ *   !hasOnboarded                         → /onboarding
+ *   hasOnboarded && has workspace         → /<first.slug>/tasks
+ *   hasOnboarded && zero workspaces       → /workspaces/new
  *
  * V3 invariant: `onboarded_at != null` is the single source of truth for
  * "may access /<slug>/*". The web workspace layout and the desktop App.tsx

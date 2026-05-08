@@ -17,10 +17,10 @@ const encode = (id: string) => encodeURIComponent(id);
 function workspaceScoped(slug: string) {
   const ws = `/${encode(slug)}`;
   return {
-    root: () => `${ws}/issues`,
+    root: () => `${ws}/tasks`,
     usage: () => `${ws}/usage`,
-    issues: () => `${ws}/issues`,
-    issueDetail: (id: string) => `${ws}/issues/${encode(id)}`,
+    issues: () => `${ws}/tasks`,
+    issueDetail: (id: string) => `${ws}/tasks/${encode(id)}`,
     projects: () => `${ws}/projects`,
     projectDetail: (id: string) => `${ws}/projects/${encode(id)}`,
     autopilots: () => `${ws}/autopilots`,
@@ -31,7 +31,7 @@ function workspaceScoped(slug: string) {
     squads: () => `${ws}/squads`,
     squadDetail: (id: string) => `${ws}/squads/${encode(id)}`,
     inbox: () => `${ws}/inbox`,
-    myIssues: () => `${ws}/my-issues`,
+    myIssues: () => `${ws}/my-tasks`,
     runtimes: () => `${ws}/runtimes`,
     runtimeDetail: (id: string) => `${ws}/runtimes/${encode(id)}`,
     skills: () => `${ws}/skills`,

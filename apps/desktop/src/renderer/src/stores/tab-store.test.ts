@@ -41,7 +41,7 @@ describe("sanitizeTabPath", () => {
   });
 
   it("passes through valid workspace-scoped paths", () => {
-    expect(sanitizeTabPath("/acme/issues")).toBe("/acme/issues");
+    expect(sanitizeTabPath("/acme/tasks")).toBe("/acme/tasks");
     expect(sanitizeTabPath("/my-team/projects/abc")).toBe("/my-team/projects/abc");
   });
 
@@ -54,7 +54,7 @@ describe("sanitizeTabPath", () => {
   });
 
   it("passes through user slugs that happen to look path-like but aren't reserved", () => {
-    expect(sanitizeTabPath("/acme-issues/issues")).toBe("/acme-issues/issues");
+    expect(sanitizeTabPath("/acme-issues/tasks")).toBe("/acme-issues/tasks");
     expect(sanitizeTabPath("/project-x/inbox")).toBe("/project-x/inbox");
   });
 });
@@ -63,9 +63,9 @@ describe("migrateV1ToV2", () => {
   it("groups v1 flat tabs by workspace slug", () => {
     const v1 = {
       tabs: [
-        { id: "t1", path: "/acme/issues", title: "Tasks", icon: "ListTodo" },
+        { id: "t1", path: "/acme/tasks", title: "Tasks", icon: "ListTodo" },
         { id: "t2", path: "/acme/projects", title: "Projects", icon: "FolderKanban" },
-        { id: "t3", path: "/butter/issues", title: "Tasks", icon: "ListTodo" },
+        { id: "t3", path: "/butter/tasks", title: "Tasks", icon: "ListTodo" },
       ],
       activeTabId: "t2",
     };
@@ -84,7 +84,7 @@ describe("migrateV1ToV2", () => {
         { id: "t1", path: "/", title: "Tasks", icon: "ListTodo" },
         { id: "t2", path: "/workspaces/new", title: "New", icon: "Plus" },
         { id: "t3", path: "/invite/abc", title: "Invite", icon: "Mail" },
-        { id: "t4", path: "/acme/issues", title: "Tasks", icon: "ListTodo" },
+        { id: "t4", path: "/acme/tasks", title: "Tasks", icon: "ListTodo" },
       ],
       activeTabId: "t1",
     };
@@ -115,7 +115,7 @@ describe("useTabStore actions", () => {
     const s = useTabStore.getState();
     expect(s.activeWorkspaceSlug).toBe("acme");
     expect(s.byWorkspace.acme.tabs).toHaveLength(1);
-    expect(s.byWorkspace.acme.tabs[0].path).toBe("/acme/issues");
+    expect(s.byWorkspace.acme.tabs[0].path).toBe("/acme/tasks");
   });
 
   it("switchWorkspace without openPath restores the group's last active tab", () => {
@@ -137,28 +137,28 @@ describe("useTabStore actions", () => {
 
   it("switchWorkspace with openPath dedupes into an existing tab with same path", () => {
     const store = useTabStore.getState();
-    store.switchWorkspace("acme"); // creates default /acme/issues
+    store.switchWorkspace("acme"); // creates default /acme/tasks
     store.addTab("/acme/projects", "Projects", "FolderKanban");
 
-    store.switchWorkspace("acme", "/acme/issues");
+    store.switchWorkspace("acme", "/acme/tasks");
     const s = useTabStore.getState();
     expect(s.byWorkspace.acme.tabs).toHaveLength(2); // no duplicate created
     const activeTab = s.byWorkspace.acme.tabs.find(
       (t) => t.id === s.byWorkspace.acme.activeTabId,
     );
-    expect(activeTab?.path).toBe("/acme/issues");
+    expect(activeTab?.path).toBe("/acme/tasks");
   });
 
   it("switchWorkspace with openPath not matching any tab adds a new tab", () => {
     const store = useTabStore.getState();
     store.switchWorkspace("acme");
-    store.switchWorkspace("acme", "/acme/issues/bug-42");
+    store.switchWorkspace("acme", "/acme/tasks/bug-42");
     const s = useTabStore.getState();
     expect(s.byWorkspace.acme.tabs).toHaveLength(2);
     const activeTab = s.byWorkspace.acme.tabs.find(
       (t) => t.id === s.byWorkspace.acme.activeTabId,
     );
-    expect(activeTab?.path).toBe("/acme/issues/bug-42");
+    expect(activeTab?.path).toBe("/acme/tasks/bug-42");
   });
 
   it("openTab dedupes by path within the active workspace", () => {
@@ -177,7 +177,7 @@ describe("useTabStore actions", () => {
     store.closeTab(onlyTabId);
     const s = useTabStore.getState();
     expect(s.byWorkspace.acme.tabs).toHaveLength(1);
-    expect(s.byWorkspace.acme.tabs[0].path).toBe("/acme/issues");
+    expect(s.byWorkspace.acme.tabs[0].path).toBe("/acme/tasks");
     expect(s.byWorkspace.acme.tabs[0].id).not.toBe(onlyTabId); // fresh tab
   });
 

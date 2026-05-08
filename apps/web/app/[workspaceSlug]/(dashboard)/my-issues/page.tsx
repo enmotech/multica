@@ -1,7 +1,10 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { MyIssuesPage } from "@multica/views/my-issues";
+interface Props {
+  params: Promise<{ workspaceSlug: string }>;
+}
 
-export default function Page() {
-  return <MyIssuesPage />;
+export default async function MyIssuesRedirect({ params }: Props) {
+  const { workspaceSlug } = await params;
+  redirect(`/${workspaceSlug}/my-tasks`);
 }
