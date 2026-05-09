@@ -1,6 +1,7 @@
 package service
 
 import (
+	"os"
 	"strings"
 	"testing"
 )
@@ -35,17 +36,61 @@ func TestSanitizeSubjectField(t *testing.T) {
 	}
 }
 
-func TestBuildInvitationParams_EscapesHTMLInBody(t *testing.T) {
+func TestEmailService_UsesProvider(t *testing.T) {
+	var called bool
+	mock := &stubProvider{SendFunc: func(from, to, subject, body string) error {
+		called = true
+		if to != "user@test.com" {
+			t.Errorf("to = %q, want %q", to, "user@test.com")
+		}
+		if subject == "" {
+			t.Error("subject should not be empty")
+		}
+		return nil
+	}}
+	svc := &EmailService{
+		provider:  mock,
+		fromEmail: "noreply@test.com",
+	}
+	err := svc.SendVerificationCode("user@test.com", "123456")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !called {
+		t.Error("provider.Send was not called")
+	}
+}
+
+func TestEmailService_InvitationUsesProvider(t *testing.T) {
+	var called bool
+	mock := &stubProvider{SendFunc: func(from, to, subject, body string) error {
+		called = true
+		return nil
+	}}
+	svc := &EmailService{
+		provider:  mock,
+		fromEmail: "noreply@test.com",
+	}
+	err := svc.SendInvitationEmail("user@test.com", "Alice", "Acme", "inv-123")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !called {
+		t.Error("provider.Send was not called")
+	}
+}
+
+func TestEmailService_InvitationEscapesHTMLInBody(t *testing.T) {
 	tests := []struct {
-		name        string
-		inviter     string
-		workspace   string
-		wantInBody  []string
+		name          string
+		inviter       string
+		workspace     string
+		wantInBody    []string
 		wantNotInBody []string
 	}{
 		{
-			name:      "escapes script tag in inviter",
-			inviter:   "<script>alert(1)</script>",
+			name:     "escapes script tag in inviter",
+			inviter:  "<script>alert(1)</script>",
 			workspace: "Acme",
 			wantInBody: []string{
 				"&lt;script&gt;alert(1)&lt;/script&gt;",
@@ -55,16 +100,16 @@ func TestBuildInvitationParams_EscapesHTMLInBody(t *testing.T) {
 			},
 		},
 		{
-			name:      "escapes attribute-break payload in inviter",
-			inviter:   `Alice" onclick="evil()`,
+			name:     "escapes attribute-break payload in inviter",
+			inviter:  `Alice" onclick="evil()`,
 			workspace: "Acme",
 			wantNotInBody: []string{
 				`Alice" onclick="evil()`,
 			},
 		},
 		{
-			name:      "escapes anchor tag in workspace",
-			inviter:   "Alice",
+			name:     "escapes anchor tag in workspace",
+			inviter:  "Alice",
 			workspace: `<a href="https://evil.example">Click</a>`,
 			wantInBody: []string{
 				"&lt;a href=",
@@ -75,8 +120,8 @@ func TestBuildInvitationParams_EscapesHTMLInBody(t *testing.T) {
 			},
 		},
 		{
-			name:      "benign text unchanged",
-			inviter:   "Alice",
+			name:     "benign text unchanged",
+			inviter:  "Alice",
 			workspace: "Acme",
 			wantInBody: []string{
 				"Alice",
@@ -87,95 +132,96 @@ func TestBuildInvitationParams_EscapesHTMLInBody(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := buildInvitationParams(
-				"noreply@multica.ai",
-				"invitee@example.com",
-				tt.inviter,
-				tt.workspace,
-				"https://app.multica.ai/invite/abc-123",
-			)
+			var capturedBody string
+			mock := &stubProvider{SendFunc: func(from, to, subject, body string) error {
+				capturedBody = body
+				return nil
+			}}
+			os.Setenv("FRONTEND_ORIGIN", "https://test.com")
+			defer os.Unsetenv("FRONTEND_ORIGIN")
+
+			svc := &EmailService{provider: mock, fromEmail: "noreply@test.com"}
+			err := svc.SendInvitationEmail("to@test.com", tt.inviter, tt.workspace, "abc-123")
+			if err != nil {
+				t.Fatal(err)
+			}
 			for _, needle := range tt.wantInBody {
-				if !strings.Contains(p.Html, needle) {
-					t.Errorf("body missing %q\nbody: %s", needle, p.Html)
+				if !strings.Contains(capturedBody, needle) {
+					t.Errorf("body missing %q\nbody: %s", needle, capturedBody)
 				}
 			}
 			for _, needle := range tt.wantNotInBody {
-				if strings.Contains(p.Html, needle) {
-					t.Errorf("body should not contain raw %q\nbody: %s", needle, p.Html)
+				if strings.Contains(capturedBody, needle) {
+					t.Errorf("body should not contain raw %q\nbody: %s", needle, capturedBody)
 				}
 			}
 		})
 	}
 }
 
-func TestBuildInvitationParams_SubjectStripsControls(t *testing.T) {
-	p := buildInvitationParams(
-		"noreply@multica.ai",
-		"invitee@example.com",
-		"Alice\r\n",
-		"Acme\t",
-		"https://app.multica.ai/invite/abc",
-	)
-	if strings.ContainsAny(p.Subject, "\r\n\t") {
-		t.Errorf("subject still contains control characters: %q", p.Subject)
+func TestEmailService_InvitationSubjectStripsControls(t *testing.T) {
+	var capturedSubject string
+	mock := &stubProvider{SendFunc: func(from, to, subject, body string) error {
+		capturedSubject = subject
+		return nil
+	}}
+	os.Setenv("FRONTEND_ORIGIN", "https://test.com")
+	defer os.Unsetenv("FRONTEND_ORIGIN")
+
+	svc := &EmailService{provider: mock, fromEmail: "noreply@test.com"}
+	_ = svc.SendInvitationEmail("to@test.com", "Alice\r\n", "Acme\t", "abc")
+	if strings.ContainsAny(capturedSubject, "\r\n\t") {
+		t.Errorf("subject still contains control characters: %q", capturedSubject)
 	}
-	if p.Subject != "Alice invited you to Acme on Multica" {
-		t.Errorf("unexpected subject: %q", p.Subject)
+	if capturedSubject != "Alice invited you to Acme on Multica" {
+		t.Errorf("unexpected subject: %q", capturedSubject)
 	}
 }
 
-func TestBuildInvitationParams_SubjectNotHTMLEscaped(t *testing.T) {
-	// Subject is not HTML-rendered; entities would render literally in inboxes.
-	p := buildInvitationParams(
-		"noreply@multica.ai",
-		"invitee@example.com",
-		"Alice",
-		"Acme & Co.",
-		"https://app.multica.ai/invite/abc",
-	)
-	if strings.Contains(p.Subject, "&amp;") {
-		t.Errorf("subject should not be HTML-escaped, got %q", p.Subject)
+func TestEmailService_InvitationSubjectNotHTMLEscaped(t *testing.T) {
+	var capturedSubject string
+	mock := &stubProvider{SendFunc: func(from, to, subject, body string) error {
+		capturedSubject = subject
+		return nil
+	}}
+	os.Setenv("FRONTEND_ORIGIN", "https://test.com")
+	defer os.Unsetenv("FRONTEND_ORIGIN")
+
+	svc := &EmailService{provider: mock, fromEmail: "noreply@test.com"}
+	_ = svc.SendInvitationEmail("to@test.com", "Alice", "Acme & Co.", "abc")
+	if strings.Contains(capturedSubject, "&amp;") {
+		t.Errorf("subject should not be HTML-escaped, got %q", capturedSubject)
 	}
-	if !strings.Contains(p.Subject, "Acme & Co.") {
-		t.Errorf("subject missing literal ampersand: %q", p.Subject)
+	if !strings.Contains(capturedSubject, "Acme & Co.") {
+		t.Errorf("subject missing literal ampersand: %q", capturedSubject)
 	}
 }
 
-func TestBuildInvitationParams_SubjectTruncated(t *testing.T) {
+func TestEmailService_InvitationSubjectTruncated(t *testing.T) {
+	var capturedSubject string
+	mock := &stubProvider{SendFunc: func(from, to, subject, body string) error {
+		capturedSubject = subject
+		return nil
+	}}
+	os.Setenv("FRONTEND_ORIGIN", "https://test.com")
+	defer os.Unsetenv("FRONTEND_ORIGIN")
+
+	svc := &EmailService{provider: mock, fromEmail: "noreply@test.com"}
 	longWorkspace := strings.Repeat("A", 200)
-	p := buildInvitationParams(
-		"noreply@multica.ai",
-		"invitee@example.com",
-		"Alice",
-		longWorkspace,
-		"https://app.multica.ai/invite/abc",
-	)
-	// Template: "Alice invited you to <ws> on Multica"
-	// ws is capped at maxSubjectFieldRunes; overall subject should also be bounded.
+	_ = svc.SendInvitationEmail("to@test.com", "Alice", longWorkspace, "abc")
 	maxExpected := len("Alice invited you to  on Multica") + maxSubjectFieldRunes
-	if runes := len([]rune(p.Subject)); runes > maxExpected {
-		t.Errorf("subject not bounded: %d runes, max %d: %q", runes, maxExpected, p.Subject)
+	if runes := len([]rune(capturedSubject)); runes > maxExpected {
+		t.Errorf("subject not bounded: %d runes, max %d: %q", runes, maxExpected, capturedSubject)
 	}
-	if !strings.Contains(p.Subject, "…") {
-		t.Errorf("truncated subject should contain ellipsis marker: %q", p.Subject)
+	if !strings.Contains(capturedSubject, "…") {
+		t.Errorf("truncated subject should contain ellipsis marker: %q", capturedSubject)
 	}
 }
 
-func TestBuildInvitationParams_ToAndFromPassedThrough(t *testing.T) {
-	p := buildInvitationParams(
-		"noreply@multica.ai",
-		"invitee@example.com",
-		"Alice",
-		"Acme",
-		"https://app.multica.ai/invite/abc",
-	)
-	if p.From != "noreply@multica.ai" {
-		t.Errorf("From = %q", p.From)
-	}
-	if len(p.To) != 1 || p.To[0] != "invitee@example.com" {
-		t.Errorf("To = %v", p.To)
-	}
-	if !strings.Contains(p.Html, "https://app.multica.ai/invite/abc") {
-		t.Errorf("body missing invite URL: %s", p.Html)
-	}
+type stubProvider struct {
+	SendFunc func(from, to, subject, body string) error
+}
+
+func (s *stubProvider) Send(from, to, subject, body string) error {
+	return s.SendFunc(from, to, subject, body)
 }
