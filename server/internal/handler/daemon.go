@@ -545,7 +545,8 @@ func (h *Handler) DaemonDeregister(w http.ResponseWriter, r *http.Request) {
 }
 
 type DaemonHeartbeatRequest struct {
-	RuntimeID string `json:"runtime_id"`
+	RuntimeID           string `json:"runtime_id"`
+	SupportsBatchImport bool   `json:"supports_batch_import,omitempty"`
 }
 
 // heartbeatHasPendingTimeout bounds the cheap HasPending probe on the
@@ -559,6 +560,16 @@ type DaemonHeartbeatRequest struct {
 // therefore only invoke PopPending after HasPending confirms there is work
 // to claim, so we never start a claim we might have to abort.
 const heartbeatHasPendingTimeout = 1 * time.Second
+
+// maxLocalSkillImportBatch is how many pending import requests the heartbeat
+// handler pops per cycle. Higher values let the daemon process more imports
+// in parallel but increase per-heartbeat latency.
+//
+// Timeout invariant: IMPORT_CONCURRENCY (views/.../runtime-local-skill-import-panel.tsx)
+// × heartbeat period (~15s) must stay within runtimeLocalSkillPendingTimeout
+// (runtime_local_skills.go), and IMPORT_POLL_TIMEOUT_MS (core/runtimes/local-skills.ts)
+// must exceed pendingTimeout + runningTimeout.
+const maxLocalSkillImportBatch = 10
 
 // runtimeLivenessTTL is how long a Redis liveness record stays valid before
 // expiring. The daemon refreshes it every heartbeat (~15s), so this just
@@ -656,7 +667,7 @@ func (h *Handler) DaemonHeartbeat(w http.ResponseWriter, r *http.Request) {
 	}
 	authMs = time.Since(start).Milliseconds()
 
-	ack, m, err := h.processHeartbeat(r.Context(), rt)
+	ack, m, err := h.processHeartbeat(r.Context(), rt, req.SupportsBatchImport)
 	updateMs = m.UpdateMs
 	probeModelMs = m.ProbeModelMs
 	popModelMs = m.PopModelMs
@@ -690,6 +701,9 @@ func (h *Handler) DaemonHeartbeat(w http.ResponseWriter, r *http.Request) {
 	if ack.PendingLocalSkillImport != nil {
 		resp["pending_local_skill_import"] = ack.PendingLocalSkillImport
 	}
+	if len(ack.PendingLocalSkillImports) > 0 {
+		resp["pending_local_skill_imports"] = ack.PendingLocalSkillImports
+	}
 	writeJSON(w, http.StatusOK, resp)
 }
 
@@ -700,7 +714,14 @@ func (h *Handler) DaemonHeartbeat(w http.ResponseWriter, r *http.Request) {
 // Workspace authorization is re-checked on every heartbeat instead of trusted
 // from the upgrade-time check because runtime ownership can change (e.g. a
 // runtime is reassigned to another workspace mid-connection).
-func (h *Handler) HandleDaemonWSHeartbeat(ctx context.Context, identity daemonws.ClientIdentity, runtimeID string) (*protocol.DaemonHeartbeatAckPayload, error) {
+//
+// When the runtime row is missing (pgx.ErrNoRows), the function returns a
+// successful ack with Status=HeartbeatStatusRuntimeGone and RuntimeGone=true
+// instead of an error. That keeps the hub from logging every beat at Warn,
+// and tells the daemon to drop the stale runtime and re-register. Other DB
+// errors still propagate as errors so they keep their existing Warn logging
+// and the daemon does not mistake a hiccup for a deletion.
+func (h *Handler) HandleDaemonWSHeartbeat(ctx context.Context, identity daemonws.ClientIdentity, runtimeID string, supportsBatchImport bool) (*protocol.DaemonHeartbeatAckPayload, error) {
 	runtimeUUID, err := util.ParseUUID(runtimeID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid runtime_id: %w", err)
@@ -712,7 +733,7 @@ func (h *Handler) HandleDaemonWSHeartbeat(ctx context.Context, identity daemonws
 	if identity.WorkspaceID != "" && identity.WorkspaceID != uuidToString(rt.WorkspaceID) {
 		return nil, fmt.Errorf("runtime not in connection workspace")
 	}
-	ack, _, err := h.processHeartbeat(ctx, rt)
+	ack, _, err := h.processHeartbeat(ctx, rt, supportsBatchImport)
 	return ack, err
 }
 
@@ -773,7 +794,7 @@ type heartbeatMetrics struct {
 // the WebSocket daemon:heartbeat path: records liveness and pulls any pending
 // actions queued for the runtime. Auth and request decoding live in the
 // caller because they differ between transports.
-func (h *Handler) processHeartbeat(ctx context.Context, rt db.AgentRuntime) (*protocol.DaemonHeartbeatAckPayload, heartbeatMetrics, error) {
+func (h *Handler) processHeartbeat(ctx context.Context, rt db.AgentRuntime, supportsBatchImport bool) (*protocol.DaemonHeartbeatAckPayload, heartbeatMetrics, error) {
 	var m heartbeatMetrics
 	runtimeID := uuidToString(rt.ID)
 
@@ -877,14 +898,42 @@ func (h *Handler) processHeartbeat(ctx context.Context, rt db.AgentRuntime) (*pr
 	switch {
 	case probeErr == nil && hasImport:
 		popStart := time.Now()
-		pendingImport, popErr := h.LocalSkillImportStore.PopPending(ctx, runtimeID)
-		m.PopImportMs = time.Since(popStart).Milliseconds()
-		if popErr != nil {
-			slog.Warn("local skill import PopPending failed", "error", popErr, "runtime_id", runtimeID)
-		} else if pendingImport != nil {
-			ack.PendingLocalSkillImport = &protocol.DaemonHeartbeatPendingLocalSkillImport{
-				ID:       pendingImport.ID,
-				SkillKey: pendingImport.SkillKey,
+		if supportsBatchImport {
+			pendingImports, popErr := h.LocalSkillImportStore.PopPendingBatch(ctx, runtimeID, maxLocalSkillImportBatch)
+			m.PopImportMs = time.Since(popStart).Milliseconds()
+			if popErr != nil {
+				slog.Warn("local skill import PopPendingBatch failed", "error", popErr, "runtime_id", runtimeID, "claimed", len(pendingImports))
+			}
+			// Always dispatch whatever was claimed — even on partial
+			// failure the claimed requests have already transitioned to
+			// running in the store. Dropping them here would leave them
+			// stranded until the running timeout.
+			if len(pendingImports) > 0 {
+				// Backwards compat: singular field carries the first item so
+				// old daemons that don't know the plural field still get one.
+				ack.PendingLocalSkillImport = &protocol.DaemonHeartbeatPendingLocalSkillImport{
+					ID:       pendingImports[0].ID,
+					SkillKey: pendingImports[0].SkillKey,
+				}
+				batch := make([]protocol.DaemonHeartbeatPendingLocalSkillImport, 0, len(pendingImports))
+				for _, p := range pendingImports {
+					batch = append(batch, protocol.DaemonHeartbeatPendingLocalSkillImport{
+						ID:       p.ID,
+						SkillKey: p.SkillKey,
+					})
+				}
+				ack.PendingLocalSkillImports = batch
+			}
+		} else {
+			pendingImport, popErr := h.LocalSkillImportStore.PopPending(ctx, runtimeID)
+			m.PopImportMs = time.Since(popStart).Milliseconds()
+			if popErr != nil {
+				slog.Warn("local skill import PopPending failed", "error", popErr, "runtime_id", runtimeID)
+			} else if pendingImport != nil {
+				ack.PendingLocalSkillImport = &protocol.DaemonHeartbeatPendingLocalSkillImport{
+					ID:       pendingImport.ID,
+					SkillKey: pendingImport.SkillKey,
+				}
 			}
 		}
 	case probeErr != nil:

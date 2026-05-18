@@ -185,6 +185,64 @@ func TestDaemonHeartbeat_WithDaemonToken_CrossWorkspace(t *testing.T) {
 	}
 }
 
+// TestHandleDaemonWSHeartbeat_RuntimeGoneReturnsAckNotError pins the fix for
+// issue #2391: when GetAgentRuntime returns pgx.ErrNoRows (runtime row was
+// deleted server-side), the WS handler must return a successful ack with
+// RuntimeGone=true rather than an error. Returning an error makes the WS hub
+// log every beat at Warn — the flood the issue is about.
+func TestHandleDaemonWSHeartbeat_RuntimeGoneReturnsAckNotError(t *testing.T) {
+	if testHandler == nil {
+		t.Skip("database not available")
+	}
+
+	// A well-formed UUID that does NOT exist in agent_runtime. The handler
+	// must turn the resulting pgx.ErrNoRows into a RuntimeGone ack.
+	missingRuntime := uuid.New().String()
+	ack, err := testHandler.HandleDaemonWSHeartbeat(context.Background(),
+		daemonws.ClientIdentity{WorkspaceID: testWorkspaceID},
+		missingRuntime, false)
+	if err != nil {
+		t.Fatalf("HandleDaemonWSHeartbeat: unexpected error %v", err)
+	}
+	if ack == nil {
+		t.Fatal("HandleDaemonWSHeartbeat: nil ack for missing runtime")
+	}
+	if !ack.RuntimeGone {
+		t.Fatalf("ack.RuntimeGone = false, want true")
+	}
+	if ack.Status != protocol.HeartbeatStatusRuntimeGone {
+		t.Fatalf("ack.Status = %q, want %q", ack.Status, protocol.HeartbeatStatusRuntimeGone)
+	}
+	if ack.RuntimeID != missingRuntime {
+		t.Fatalf("ack.RuntimeID = %q, want %q", ack.RuntimeID, missingRuntime)
+	}
+}
+
+// TestDaemonHeartbeat_HTTPRuntimeGoneReturns404 pins the HTTP-path mirror:
+// pgx.ErrNoRows on the runtime lookup is the only DB error mapped to 404.
+// Anything else (transient pool issue, schema mismatch, ...) must surface
+// as 500 so the daemon does not mistake a hiccup for a deletion.
+func TestDaemonHeartbeat_HTTPRuntimeGoneReturns404(t *testing.T) {
+	if testHandler == nil {
+		t.Skip("database not available")
+	}
+
+	missingRuntime := uuid.New().String()
+	w := httptest.NewRecorder()
+	req := newDaemonTokenRequest(http.MethodPost, "/api/daemon/heartbeat", map[string]any{
+		"runtime_id": missingRuntime,
+	}, testWorkspaceID, "test-daemon")
+	testHandler.DaemonHeartbeat(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("expected 404 for missing runtime, got %d: %s", w.Code, w.Body.String())
+	}
+	if !strings.Contains(strings.ToLower(w.Body.String()), "runtime not found") {
+		t.Fatalf("expected 'runtime not found' body, got %s", w.Body.String())
+	}
+}
+
+
 // TestDaemonHeartbeat_SlowProbeDoesNotWedge pins the invariant that a stalled
 // HasPending probe cannot wedge the heartbeat endpoint past the per-probe
 // timeout. The probe is the only bounded call; PopPending is ack-safe-
