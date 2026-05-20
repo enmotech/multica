@@ -14,7 +14,7 @@ import type { ImportStarterIssuePayload } from "@multica/core/api";
 
 export const PROJECT = {
   title: "上手指南",
-  description: "几件可以在 Multica 里上手试一试的事，按你的节奏走。",
+  description: "几件可以在 MoClaw 里上手试一试的事，按你的节奏走。",
 };
 
 interface WelcomeIssueText {
@@ -29,11 +29,11 @@ export function buildWelcomeIssueText(
   const name = userName.trim() || "你";
 
   const header = [
-    `欢迎来到 Multica！👋`,
+    `欢迎来到 MoClaw！👋`,
     ``,
-    `这是你工作区里的第一个 issue。下面你的智能体马上会回复——这就是 Multica 里工作的方式：你写下你想做的事，智能体（或同事）接手并在评论里回复。`,
+    `这是你工作区里的第一个 issue。下面你的智能体马上会回复——这就是 MoClaw 里工作的方式：你写下你想做的事，智能体（或同事）接手并在评论里回复。`,
     ``,
-    `[了解 Multica 是怎么运转的 →](https://multica.ai/docs/zh/how-multica-works)`,
+    `[了解 MoClaw 是怎么运转的 →](https://multica.ai/docs/zh/how-multica-works)`,
     ``,
     `---`,
     ``,
@@ -43,7 +43,7 @@ export function buildWelcomeIssueText(
     `请你在第一条回复里：`,
     ``,
     `1. **简短地自我介绍** —— 名字、定位、擅长的事。`,
-    `2. **说明我们在 Multica 里怎么协作**：`,
+    `2. **说明我们在 MoClaw 里怎么协作**：`,
     `   - 把 issue 分配给你 **并** 把状态置为 **Todo** 才会触发你开工（Backlog 状态会让你暂停）`,
     `   - 在评论里 @你 适合丢一个快速问题`,
     `   - **Workspace Context**（在 Settings → General）是这个工作区里每个智能体都会读到的共享背景`,
@@ -56,7 +56,7 @@ export function buildWelcomeIssueText(
     `请你在第一条回复里：`,
     ``,
     `1. **简短地自我介绍** —— 名字、定位、擅长的事。`,
-    `2. **说明我们在 Multica 里怎么协作**：`,
+    `2. **说明我们在 MoClaw 里怎么协作**：`,
     `   - 把 issue 分配给你 **并** 把状态置为 **Todo** 才会触发你开工（Backlog 状态会让你暂停）`,
     `   - 在评论里 @你 适合丢一个快速问题`,
     `   - **Workspace Context**（在 Settings → General）是这个工作区里每个智能体都会读到的共享背景`,
@@ -68,23 +68,23 @@ export function buildWelcomeIssueText(
   switch (q.use_case) {
     case "coding":
       return {
-        title: "👋 欢迎来到 Multica —— 一起开工",
-        description: `${header}你好智能体，这是 ${name} 第一次用 Multica。${name} 主要会让你做 **编码相关的工作**。\n\n${sharedInstructions}`,
+        title: "👋 欢迎来到 MoClaw —— 一起开工",
+        description: `${header}你好智能体，这是 ${name} 第一次用 MoClaw。${name} 主要会让你做 **编码相关的工作**。\n\n${sharedInstructions}`,
       };
     case "planning":
       return {
-        title: "👋 欢迎来到 Multica —— 一起开工",
-        description: `${header}你好智能体，这是 ${name} 第一次用 Multica。${name} 希望你帮忙做 **规划与拆解工作**。\n\n${sharedInstructions}`,
+        title: "👋 欢迎来到 MoClaw —— 一起开工",
+        description: `${header}你好智能体，这是 ${name} 第一次用 MoClaw。${name} 希望你帮忙做 **规划与拆解工作**。\n\n${sharedInstructions}`,
       };
     case "writing_research":
       return {
-        title: "👋 欢迎来到 Multica —— 一起开工",
-        description: `${header}你好智能体，这是 ${name} 第一次用 Multica。${name} 会让你做 **调研和写作** —— 起草、摘要、分析。\n\n${sharedInstructions}`,
+        title: "👋 欢迎来到 MoClaw —— 一起开工",
+        description: `${header}你好智能体，这是 ${name} 第一次用 MoClaw。${name} 会让你做 **调研和写作** —— 起草、摘要、分析。\n\n${sharedInstructions}`,
       };
     case "explore":
       return {
-        title: "👋 欢迎来到 Multica —— 一起开工",
-        description: `${header}你好智能体，这是 ${name} 第一次用 Multica。${name} 还在 **探索** Multica 能做什么 —— 暂时没有具体目标。\n\n${exploreInstructions}`,
+        title: "👋 欢迎来到 MoClaw —— 一起开工",
+        description: `${header}你好智能体，这是 ${name} 第一次用 MoClaw。${name} 还在 **探索** MoClaw 能做什么 —— 暂时没有具体目标。\n\n${exploreInstructions}`,
       };
     case "other": {
       const customUseCase = (q.use_case_other ?? "").trim();
@@ -92,14 +92,14 @@ export function buildWelcomeIssueText(
         ? `${name} 告诉我们想让你做的事是："${customUseCase}"。`
         : `${name} 还没明确具体的使用场景。`;
       return {
-        title: "👋 欢迎来到 Multica —— 一起开工",
-        description: `${header}你好智能体，这是 ${name} 第一次用 Multica。${contextLine}\n\n${sharedInstructions}`,
+        title: "👋 欢迎来到 MoClaw —— 一起开工",
+        description: `${header}你好智能体，这是 ${name} 第一次用 MoClaw。${contextLine}\n\n${sharedInstructions}`,
       };
     }
     default:
       return {
-        title: "👋 欢迎来到 Multica —— 一起开工",
-        description: `${header}你好智能体，这是 ${name} 第一次用 Multica。\n\n${sharedInstructions}`,
+        title: "👋 欢迎来到 MoClaw —— 一起开工",
+        description: `${header}你好智能体，这是 ${name} 第一次用 MoClaw。\n\n${sharedInstructions}`,
       };
   }
 }
@@ -114,7 +114,7 @@ export function buildAgentGuidedSubIssues(
       assign_to_self: true,
       title: "学会怎么在任意 issue 上触发你的智能体",
       description: [
-        `**每个 issue 右侧都有一个 Properties 面板**。从这里控制谁来做什么。Multica 里的智能体被触发的条件是 issue 同时满足：`,
+        `**每个 issue 右侧都有一个 Properties 面板**。从这里控制谁来做什么。MoClaw 里的智能体被触发的条件是 issue 同时满足：`,
         ``,
         `  Assignee = 你的智能体  AND  Status = Todo（不是 Backlog）`,
         ``,
@@ -195,7 +195,7 @@ export function buildAgentGuidedSubIssues(
       assign_to_self: true,
       title: "邀请同事加入",
       description: [
-        `Multica 在小团队共享智能体的场景下最好用。`,
+        `MoClaw 在小团队共享智能体的场景下最好用。`,
         ``,
         `**在哪**：`,
         `1. 侧边栏 → **Settings**（⚙️，最底部）`,
@@ -422,7 +422,7 @@ export function buildSelfServeSubIssues(
       description: [
         `**前置条件**：上面两条 task 都做完，你已经有运行时 + 智能体。`,
         ``,
-        `**Multica 怎么触发智能体**：`,
+        `**MoClaw 怎么触发智能体**：`,
         `- 把 issue 分给智能体`,
         `- 状态置为 **Todo**（不是 Backlog —— Backlog 会让智能体暂停）`,
         `- 智能体自动接手`,
@@ -518,7 +518,7 @@ export function buildSelfServeSubIssues(
       assign_to_self: true,
       title: "邀请同事加入",
       description: [
-        `Multica 在小团队共享智能体的场景下最好用。`,
+        `MoClaw 在小团队共享智能体的场景下最好用。`,
         ``,
         `**在哪**：`,
         `1. 侧边栏 → **Settings**（⚙️，最底部）`,
