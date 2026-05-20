@@ -71,18 +71,18 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.multica.ai"),
   title: {
-    default: "Multica — Project Management for Human + Agent Teams",
-    template: "%s | Multica",
+    default: "MoClaw — Database Management for Human + Agent Teams",
+    template: "%s | MoClaw",
   },
   description:
-    "Open-source platform that turns coding agents into real teammates. Assign tasks, track progress, compound skills.",
+    "AI platform that turns database management into real teamwork. Assign tasks, track progress, compound skills.",
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    shortcut: ["/favicon.svg"],
+    icon: [{ url: "/favicon.ico", type: "image/x-icon" }],
+    shortcut: ["/favicon.ico"],
   },
   openGraph: {
     type: "website",
-    siteName: "Multica",
+    siteName: "MoClaw",
     locale: "en_US",
   },
   twitter: {
