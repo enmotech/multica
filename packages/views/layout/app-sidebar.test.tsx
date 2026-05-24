@@ -111,6 +111,7 @@ vi.mock("@multica/core/workspace/queries", () => ({
   myInvitationListOptions: () => ({ queryKey: ["invitations"] }),
   workspaceKeys: { myInvitations: () => ["invitations"] },
   workspaceListOptions: () => ({ queryKey: ["workspaces"] }),
+  agentListOptions: () => ({ queryKey: ["agents"] }),
 }));
 vi.mock("@tanstack/react-query", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@tanstack/react-query")>()),

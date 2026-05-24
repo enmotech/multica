@@ -151,14 +151,14 @@ describe("IssueActionsDropdown", () => {
     expect(screen.getByText("Due date")).toBeInTheDocument();
     expect(screen.getByText("Copy link")).toBeInTheDocument();
     expect(screen.getByText("More")).toBeInTheDocument();
-    expect(screen.getByText("Delete issue")).toBeInTheDocument();
+    expect(screen.getByText("Delete task")).toBeInTheDocument();
     // Relationship actions are hidden inside the "More" submenu by default.
     expect(screen.queryByText("Create sub-issue")).not.toBeInTheDocument();
     expect(screen.queryByText("Set parent issue...")).not.toBeInTheDocument();
     expect(screen.queryByText("Add sub-issue...")).not.toBeInTheDocument();
   });
 
-  it("clicking Delete issue opens the delete-confirm modal", async () => {
+  it("clicking Delete task opens the delete-confirm modal", async () => {
     render(
       wrap(
         <IssueActionsDropdown
@@ -170,7 +170,7 @@ describe("IssueActionsDropdown", () => {
     );
 
     fireEvent.click(screen.getByTestId("trigger"));
-    const del = await screen.findByText("Delete issue");
+    const del = await screen.findByText("Delete task");
     fireEvent.click(del);
 
     expect(mockOpenModal).toHaveBeenCalledWith("issue-delete-confirm", {
@@ -194,6 +194,6 @@ describe("IssueActionsContextMenu", () => {
     fireEvent.contextMenu(screen.getByTestId("row"));
 
     expect(await screen.findByText("Status")).toBeInTheDocument();
-    expect(screen.getByText("Delete issue")).toBeInTheDocument();
+    expect(screen.getByText("Delete task")).toBeInTheDocument();
   });
 });

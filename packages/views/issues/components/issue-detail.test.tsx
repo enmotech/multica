@@ -477,18 +477,18 @@ describe("IssueDetail (shared)", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("This issue does not exist or has been deleted in this workspace."),
+        screen.getByText("This task does not exist or has been deleted in this workspace."),
       ).toBeInTheDocument();
     });
   });
 
-  it("shows 'Back to Issues' button when issue is not found and no onDelete prop", async () => {
+  it("shows 'Back to Tasks' button when issue is not found and no onDelete prop", async () => {
     mockApiObj.getIssue.mockRejectedValue(new Error("Not found"));
 
     renderIssueDetail("nonexistent-id");
 
     await waitFor(() => {
-      expect(screen.getByText("Back to Issues")).toBeInTheDocument();
+      expect(screen.getByText("Back to Tasks")).toBeInTheDocument();
     });
   });
 

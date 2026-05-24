@@ -411,7 +411,7 @@ describe("IssuesPage (shared)", () => {
 
     renderWithQuery(<IssuesPage />);
 
-    await screen.findByText("Issues");
+    await screen.findByText("Tasks");
     expect(screen.getByText("Test WS")).toBeInTheDocument();
   });
 
@@ -420,8 +420,8 @@ describe("IssuesPage (shared)", () => {
 
     renderWithQuery(<IssuesPage />);
 
-    await screen.findByText("No issues yet");
-    expect(screen.getByText("Create an issue to get started.")).toBeInTheDocument();
+    await screen.findByText("No tasks yet");
+    expect(screen.getByText("Create a task to get started.")).toBeInTheDocument();
   });
 
   it("shows scope tab buttons", async () => {
