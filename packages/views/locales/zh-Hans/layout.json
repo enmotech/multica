@@ -31,6 +31,8 @@
     "log_out": "退出登录",
     "new_issue": "新建 task",
     "new_issue_shortcut": "C",
+    "active_label": "活跃",
+    "no_agents_working": "当前没有 agent 在运行",
     "pinned_label": "固定",
     "workspace_group": "工作区",
     "configure_group": "配置",

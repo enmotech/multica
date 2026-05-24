@@ -75,6 +75,7 @@ import { issueDetailOptions } from "@multica/core/issues/queries";
 import { projectDetailOptions } from "@multica/core/projects/queries";
 import type { PinnedItem } from "@multica/core/types";
 import { useLogout } from "../auth";
+import { ActiveTasksSidebarSection } from "./active-tasks-sidebar-section";
 import { ProjectIcon } from "../projects/components/project-icon";
 import { useT } from "../i18n";
 
@@ -626,6 +627,8 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
+          {wsId && <ActiveTasksSidebarSection wsId={wsId} />}
 
           {localPinned.length > 0 && (
             <Collapsible defaultOpen>
