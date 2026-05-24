@@ -11,59 +11,61 @@ import { PixelScene } from "./pixel-scene";
 import { ActivityFeed } from "./activity-feed";
 import { useDojotransitions } from "./use-dojo-transitions";
 import { usePictureInPicture } from "./use-picture-in-picture";
+import { deriveSteadyState } from "./pixel-frames";
 import type { DojoFeedEvent } from "./use-dojo-transitions";
-import type { AgentPresenceDetail } from "@multica/core/agents";
 
 type TransientOverlay = "victory" | "defeat";
 
-/** Sorts agents by activity group, then alphabetically within each group. */
-function sortAgents<T extends { id: string; name: string }>(
-  agents: T[],
-  byAgent: Map<string, AgentPresenceDetail>,
-): T[] {
-  function groupOrder(p: AgentPresenceDetail | undefined): number {
-    if (!p || p.availability === "offline" || p.availability === "unstable") return 3;
-    if (p.workload === "working") return 0;
-    if (p.workload === "queued") return 1;
-    return 2; // idle / sleeping
-  }
-  return [...agents].sort((a, b) => {
-    const ga = groupOrder(byAgent.get(a.id));
-    const gb = groupOrder(byAgent.get(b.id));
-    if (ga !== gb) return ga - gb;
-    return a.name.localeCompare(b.name);
-  });
-}
+/**
+ * Position slots for each state area in the room (% of room image).
+ *
+ * working:     bottom center (red carpet area)
+ * waiting:     middle-right (sofa area)
+ * sleeping:    top-center (bed area)
+ * vacationing: bottom-left (potion room)
+ * overloaded:  top-right (kitchen/storage)
+ */
+const STATE_POSITIONS: Record<string, { x: number; y: number }[]> = {
+  working: [
+    { x: 35, y: 86 }, { x: 45, y: 86 }, { x: 55, y: 86 }, { x: 65, y: 86 },
+    { x: 75, y: 86 }, { x: 85, y: 86 }, { x: 40, y: 92 }, { x: 50, y: 92 },
+  ],
+  waiting: [
+    { x: 54, y: 34 }, { x: 60, y: 34 }, { x: 57, y: 40 },
+  ],
+  sleeping: [
+    { x: 28, y: 16 }, { x: 35, y: 16 }, { x: 31, y: 22 },
+  ],
+  vacationing: [
+    { x: 12, y: 72 }, { x: 20, y: 72 }, { x: 16, y: 78 },
+  ],
+  overloaded: [
+    { x: 72, y: 16 }, { x: 78, y: 16 }, { x: 75, y: 22 },
+  ],
+};
 
 /**
- * The Agent Dojo page — a pixel-art "brag screen" showing every agent's
- * live activity state. Zero new queries: piggybacks on existing
- * agentListOptions + agentTaskSnapshotOptions infrastructure.
+ * The Agent Dojo page — a pixel-art room showing every agent's
+ * live activity state. Agents move between room areas as their state changes.
  */
 export function AgentDojoPage() {
   const wsId = useWorkspaceId();
   const { byAgent, loading } = useWorkspacePresenceMap(wsId);
 
-  // Raw agent list (for ordering and rendering cards).
   const { data: agents = [] } = useQuery({
     ...agentListOptions(wsId ?? ""),
     enabled: !!wsId,
   });
 
-  // Raw snapshot — needed by useDojotransitions to diff task ID sets.
   const { data: snapshot } = useQuery({
     ...agentTaskSnapshotOptions(wsId ?? ""),
     enabled: !!wsId,
   });
 
-  // Per-agent transient overlay: "victory" | "defeat" | null.
-  // Using a counter as value so re-triggering the same event for the same
-  // agent re-mounts the overlay (e.g. two consecutive failures).
   const [overlays, setOverlays] = useState<Map<string, { type: TransientOverlay; seq: number }>>(
     new Map(),
   );
 
-  // Activity feed ring buffer — newest first, max 20 entries.
   const [feedEvents, setFeedEvents] = useState<readonly DojoFeedEvent[]>([]);
 
   const handleTransition = useCallback(
@@ -87,10 +89,29 @@ export function AgentDojoPage() {
   const { isSupported: pipSupported, isOpen: pipOpen, toggle: pipToggle, sceneRef } =
     usePictureInPicture({ width: 520, height: 400 });
 
-  const sortedAgents = sortAgents(agents, byAgent);
-  const compact = agents.length > 12;
+  // Group agents by their position state to assign positions
+  const agentPositions = new Map<string, { x: number; y: number; z: number }>();
+  const stateCounters: Record<string, number> = {};
 
-  // Header counters.
+  for (const agent of agents) {
+    const presence = byAgent.get(agent.id);
+    if (!presence) continue;
+    const key = deriveSteadyState(presence);
+    const idx = stateCounters[key] ?? 0;
+    stateCounters[key] = idx + 1;
+    const positions = STATE_POSITIONS[key] ?? STATE_POSITIONS.sleeping!;
+    const pos = positions[idx % positions.length]!;
+    // Agents beyond the slot count wrap back to the same base positions but
+    // are nudged slightly so they never sit at exactly the same coordinates.
+    const wrap = Math.floor(idx / positions.length);
+    agentPositions.set(agent.id, {
+      x: pos.x + wrap * 3,
+      y: pos.y + wrap * 2,
+      z: 10 + Math.floor(pos.y + wrap * 2),
+    });
+  }
+
+  // Header counters
   let working = 0, queued = 0, idle = 0, offline = 0;
   for (const p of byAgent.values()) {
     if (p.availability === "offline" || p.availability === "unstable") { offline++; continue; }
@@ -128,7 +149,6 @@ export function AgentDojoPage() {
             {idle > 0    && <span>{idle} idle</span>}
             {offline > 0 && <span className="text-muted-foreground/60">{offline} offline</span>}
           </div>
-          {/* Pop-out button — only rendered when Document PiP is supported (Chrome 116+) */}
           {pipSupported && (
             <button
               onClick={pipToggle}
@@ -142,37 +162,72 @@ export function AgentDojoPage() {
         </div>
       </div>
 
-      {/* ── Scene + feed: wrapped so both move into the PiP window together ── */}
+      {/* ── Scene + feed ── */}
       <div ref={sceneRef} className="flex min-h-0 flex-1 flex-col gap-4 bg-background">
-        {/* Keyframes travel with the scene so they work inside the PiP window */}
+        {/* Keyframes for dojo animations */}
         <style>{`
           @keyframes dojo-zzz {
             0%   { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-28px) scale(1.3); }
+            100% { opacity: 0; transform: translateY(-14px) scale(1.3); }
           }
-          @keyframes dojo-window-glow {
-            0%, 100% { opacity: 0; }
-            50%       { opacity: 0.08; }
+          @keyframes dojo-work-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+          }
+          @keyframes dojo-sleep-breathe {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.97); }
+          }
+          @keyframes dojo-overload-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+          }
+          @keyframes dojo-victory-jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+          }
+          @keyframes dojo-defeat-fall {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(10deg); }
           }
           @keyframes feed-scroll {
             from { transform: translateX(0); }
             to   { transform: translateX(-50%); }
           }
+          .dojo-anim-work { animation: dojo-work-bob 0.8s ease-in-out infinite; }
+          .dojo-anim-sleep { animation: dojo-sleep-breathe 2s ease-in-out infinite; opacity: 0.8; }
+          .dojo-anim-overload { animation: dojo-overload-shake 0.2s ease-in-out infinite; }
+          .dojo-anim-vacation { opacity: 0.5; filter: grayscale(0.5); }
+          .dojo-anim-wait { animation: dojo-work-bob 1.5s ease-in-out infinite; }
+          .dojo-anim-victory { animation: dojo-victory-jump 0.4s ease-in-out infinite; }
+          .dojo-anim-defeat { animation: dojo-defeat-fall 0.5s ease-in-out forwards; }
         `}</style>
-        {/* Agent grid inside the pixel scene */}
+
         <PixelScene>
-          {sortedAgents.map((agent) => {
+          {agents.map((agent) => {
             const presence = byAgent.get(agent.id);
             if (!presence) return null;
             const overlayEntry = overlays.get(agent.id);
+            const pos = agentPositions.get(agent.id);
+            if (!pos) return null;
+
             return (
-              <AgentDojoCard
+              <div
                 key={agent.id}
-                agent={agent}
-                presence={presence}
-                overlay={overlayEntry?.type ?? null}
-                compact={compact}
-              />
+                className="absolute transition-[left,top] duration-700 ease-in-out"
+                style={{
+                  left: `${pos.x}%`,
+                  top: `${pos.y}%`,
+                  zIndex: pos.z,
+                }}
+              >
+                <AgentDojoCard
+                  agent={agent}
+                  presence={presence}
+                  overlay={overlayEntry?.type ?? null}
+                />
+              </div>
             );
           })}
         </PixelScene>
