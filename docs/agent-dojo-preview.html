@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Agent Dojo — Pixel Character Preview</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f0a1e;color:#e2e8f0;font-family:'Courier New',monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+h1{font-size:1.2rem;color:#a78bfa;margin-bottom:1rem;text-align:center}
+.grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:900px}
+.card{display:flex;flex-direction:column;align-items:center;background:#1a1333;border:1px solid #312e81;border-radius:6px;padding:8px 10px;width:120px}
+.card .label{font-size:10px;color:#a78bfa;font-weight:bold;text-transform:uppercase;margin-bottom:2px}
+.card .offline-tag{font-size:8px;color:#ef4444;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.card canvas{image-rendering:pixelated;border-radius:2px}
+.card .name{font-size:9px;color:#64748b;margin-top:4px;text-align:center}
+.sprite-wrap{position:relative;display:inline-block}
+@keyframes zzz{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-28px) scale(1.3)}}
+.zzz{position:absolute;color:#a78bfa;font-weight:bold;font-size:11px;animation:zzz 2.2s ease-out infinite;pointer-events:none}
+</style>
+</head>
+<body>
+<h1>⚔️ Agent Dojo — Pixel Character Preview</h1>
+<div class="grid" id="grid"></div>
+<script>
+// Palette: single char → hex colour (null = transparent)
+const P={
+  '.':null,
+  'H':'#6366f1','h':'#4f46e5',   // body (indigo)
+  'O':'#fde68a','o':'#d4a853',   // face / skin
+  'W':'#1e1b4b',                 // eye / sunglasses (dark navy)
+  'M':'#f472b6',                 // mouth / pink detail
+  'K':'#374151','k':'#1f2937',   // keyboard / dark surfaces
+  'S':'#a78bfa','L':'#312e81',   // shirt (light purple) / legs (dark purple)
+  'B':'#1e1b4b',                 // boots
+  'A':'#818cf8',                 // arms
+  'X':'#ef4444',                 // red (defeat X / umbrella stripe)
+  'G':'#4ade80',                 // green
+  'Y':'#facc15',                 // yellow (sun / hourglass)
+  'N':'#d97706',                 // sand / amber
+  'C':'#7dd3fc',                 // sky blue (umbrella stripe alt)
+};
+
+// ─── CODING ───────────────────────────────────────────────────────────────
+const CODING_A=[
+'................',
+'................',
+'....HHHHHH......',
+'...HOOOOOOH.....',
+'...HOWOHWOH.....',
+'...HOOOOOOH.....',
+'...HOOMMOH......',
+'....HHHHHH......',
+'.....HHH........',
+'....SSSSSS......',
+'...HSSSSSH......',
+'...HSSHSSH......',
+'..A.SSSS.A......',
+'..A......A......',
+'..AKKKKKKA......',
+'...KKKKKK.......',
+'...KKKKKK.......',
+'....LLLL........',
+'....LLLL........',
+'....L..L........',
+'....L..L........',
+'...BB..BB.......',
+'................',
+'................'];
+const CODING_B=[
+'................',
+'................',
+'....HHHHHH......',
+'...HOOOOOOH.....',
+'...HO..H..H.....',
+'...HOOOOOOH.....',
+'...HOOMMOH......',
+'....HHHHHH......',
+'.....HHH........',
+'....SSSSSS......',
+'...HSSSSSH......',
+'...HSSHSSH......',
+'...A.SSSS.A.....',
+'...A......A.....',
+'...AKKKKKKA.....',
+'...KKKKKK.......',
+'...KKKKKK.......',
+'....LLLL........',
+'....LLLL........',
+'....L..L........',
+'....L..L........',
+'...BB..BB.......',
+'................',
+'................'];
+
+// ─── WAITING ──────────────────────────────────────────────────────────────
+const WAITING_A=[
+'................',
+'......YY........',
+'......YY........',
+'....HHHHHH......',
+'...HOOOOOOH.....',
+'...HOWOHWOH.....',
+'...HOOOOOOH.....',
+'...HOO.OOH......',
+'....HHHHHH......',
+'.....HHH........',
+'....SSSSSS......',
+'...HSSSSSH......',
+'...HSSHSSH......',
+'....SSSSSS......',
+'....SSSS........',
+'....LLLL........',
+'....LLLL........',
+'....L..L........',
+'....L..L........',
+'...BB..BB.......',
+'................',
+'................',
+'................',
+'................'];
+const WAITING_B=[
+'................',
+'......YY........',
+'......YY........',
+'....HHHHHH......',
+'...HOOOOOOH.....',
+'...HOWOHWOH.....',
+'...HOOOOOOH.....',
+'...HOO.OOH......',
+'....HHHHHH......',
+'.....HHH........',
+'....SSSSSS......',
+'...HSSSSSH......',
+'...HSSHSSH......',
+'....SSSSSS......',
+'....SSSS........',
+'....LLLL........',
+'....LLLL........',
+'....L..L........',
+'....L..L........',
+'....BB..BB......',
+'................',
+'................',
+'................',
+'................'];
+
+// ─── SLEEPING (online + idle — dozing at desk, zzz) ───────────────────────
+const SLEEPING_A=[
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'....HHHHHH......',
+'...HOOOOOOH.....',
+'...HO..H..H.....',
+'...HOOOOOOH.....',
+'....HHHHHH......',
+'...HSSSSSH......',
+'...HSSHSSH......',
+'..AASSSSAA......',
+'..KKKKKKKK......',
+'..KKKKKKKK......',
+'....LLLL........',
+'....LLLL........',
+'...BB..BB.......',
+'................',
+'................'];
+const SLEEPING_B=[
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'...HHHHHH.......',
+'..HOOOOOOH......',
+'..HO..H..H......',
+'..HOOOOOOH......',
+'...HHHHHH.......',
+'..HSSSSSH.......',
+'..HSSHSSH.......',
+'.AASSSSAA.......',
+'.KKKKKKKK.......',
+'.KKKKKKKK.......',
+'...LLLL.........',
+'...LLLL.........',
+'..BB..BB........',
+'................',
+'................'];
+
+// ─── VACATIONING (offline / unstable — beach umbrella scene) ──────────────
+const VACATIONING_A=[
+'..............YY',  // sun
+'.............YYY',
+'..............YY',
+'................',
+'....X...........',  // umbrella tip (red stripe)
+'...XCX..........',  // umbrella canopy, alternating red/sky
+'..XCXCX.........',
+'.XCXCXCX........',
+'XCXCXCXCX.......',
+'....KK..........',  // pole
+'....KK..........',
+'....KK..........',
+'................',
+'....HHHHHH......',  // head
+'...HOOOOOOH.....',
+'...HOWWWWOH.....',  // sunglasses
+'...HOOOOOOH.....',
+'....HHHHHH......',
+'....SSSSSS......',  // shirt / torso
+'NNNN.SSSS.NNNNNN',  // sand, legs buried
+'NNNNNNNNNNNNNNNN',
+'NNNNNNNNNNNNNNNN',
+'NNNNNNNNNNNNNNNN',
+'NNNNNNNNNNNNNNNN'];
+const VACATIONING_B=[
+'..............YY',  // sun (static)
+'.............YYY',
+'..............YY',
+'................',
+'.....X..........',  // umbrella sways 1px right
+'....XCX.........',
+'...XCXCX........',
+'..XCXCXCX.......',
+'.XCXCXCXCX......',
+'.....KK.........',  // pole follows
+'.....KK.........',
+'.....KK.........',
+'................',
+'....HHHHHH......',  // character stays put
+'...HOOOOOOH.....',
+'...HOWWWWOH.....',
+'...HOOOOOOH.....',
+'....HHHHHH......',
+'....SSSSSS......',
+'NNNN.SSSS.NNNNNN',
+'NNNNNNNNNNNNNNNN',
+'NNNNNNNNNNNNNNNN',
+'NNNNNNNNNNNNNNNN',
+'NNNNNNNNNNNNNNNN'];
+
+// ─── OVERLOADED ───────────────────────────────────────────────────────────
+const OVERLOADED_A=[
+'................',
+'..X.........X...',
+'....HHHHHH......',
+'...HOOOOOOH.....',
+'...HOWOHWOH.....',
+'...HOOOOOOH.....',
+'...HOO.OOH......',
+'....HHHHHH......',
+'.....HHH........',
+'....SSSSSS......',
+'..AHSSSSSHA.....',
+'..AHSSHSSHA.....',
+'..A.SSSS.A......',
+'..AKKKKKKA......',
+'..AKKKKKKA......',
+'...KKKKKK.......',
+'...KKKKKK.......',
+'....LLLL........',
+'....LLLL........',
+'....L..L........',
+'...BB..BB.......',
+'................',
+'................',
+'................'];
+const OVERLOADED_B=[
+'................',
+'...X.......X....',
+'...HHHHHH.......',
+'..HOOOOOOH......',
+'..HOWOHWOH......',
+'..HOOOOOOH......',
+'..HOO.OOH.......',
+'...HHHHHH.......',
+'....HHH.........',
+'...SSSSSS.......',
+'.AHSSSSSHA......',
+'.AHSSHSSHA......',
+'.A.SSSS.A.......',
+'.AKKKKKKA.......',
+'.AKKKKKKA.......',
+'..KKKKKK........',
+'..KKKKKK........',
+'...LLLL.........',
+'...LLLL.........',
+'...L..L.........',
+'..BB..BB........',
+'................',
+'................',
+'................'];
+
+// ─── VICTORY ──────────────────────────────────────────────────────────────
+const VICTORY_A=[
+'................',
+'................',
+'..A........A....',
+'..A........A....',
+'...A.HHHHHHA....',
+'...HOOOOOOH.....',
+'...HOWOHWOH.....',
+'...HOOOOOOH.....',
+'...HOOMMOOH.....',
+'....HHHHHH......',
+'.....HHH........',
+'....SSSSSS......',
+'...HSSSSSH......',
+'...HSSHSSH......',
+'....SSSSSS......',
+'....LLLL........',
+'....LLLL........',
+'................',
+'....L..L........',
+'....L..L........',
+'...BB..BB.......',
+'................',
+'................',
+'................'];
+const VICTORY_B=[
+'..A........A....',
+'..A........A....',
+'...A......A.....',
+'....HHHHHH......',
+'...HOOOOOOH.....',
+'...HOWOHWOH.....',
+'...HOOOOOOH.....',
+'...HOOMMOOH.....',
+'....HHHHHH......',
+'.....HHH........',
+'....SSSSSS......',
+'...HSSSSSH......',
+'...HSSHSSH......',
+'....SSSSSS......',
+'....LLLL........',
+'....LLLL........',
+'....L..L........',
+'....L..L........',
+'...BB..BB.......',
+'................',
+'................',
+'................',
+'................',
+'................'];
+
+// ─── DEFEAT ───────────────────────────────────────────────────────────────
+const DEFEAT_A=[
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'................',
+'....HHHHHH......',
+'...HOOOOOOH.....',
+'...HO..H..H.....',
+'...HOOOOOOH.....',
+'...HOO.OOH......',
+'....HHHHHH......',
+'...HSSSSSH......',
+'...HSSHSSH......',
+'..AASSSSAA......',
+'..KKKKKKKK......',
+'..KKKKKKKK......',
+'....LLLL........',
+'....LLLL........',
+'...BB..BB.......',
+'................',
+'................'];
+const DEFEAT_B=[
+'................',
+'......XX........',
+'......XX........',
+'................',
+'................',
+'................',
+'................',
+'................',
+'...HHHHHH.......',
+'..HOOOOOOH......',
+'..HO..H..H......',
+'..HOOOOOOH......',
+'..HOO.OOH.......',
+'...HHHHHH.......',
+'..HSSSSSH.......',
+'..HSSHSSH.......',
+'.AASSSSAA.......',
+'.KKKKKKKK.......',
+'.KKKKKKKK.......',
+'...LLLL.........',
+'...LLLL.........',
+'..BB..BB........',
+'................',
+'................'];
+
+// ─── State definitions ─────────────────────────────────────────────────────
+const STATES={
+  working:     {frames:[CODING_A,CODING_B],       ms:250,  label:'WORKING',     sub:'Kimi · MOC-20'},
+  waiting:     {frames:[WAITING_A,WAITING_B],     ms:600,  label:'WAITING',     sub:'GPT · MOC-18'},
+  sleeping:    {frames:[SLEEPING_A,SLEEPING_B],   ms:1000, label:'SLEEPING',    sub:'Claude · idle'},
+  vacationing: {frames:[VACATIONING_A,VACATIONING_B], ms:1400, label:'VACATIONING', sub:'Mistral', offline:true},
+  overloaded:  {frames:[OVERLOADED_A,OVERLOADED_B],  ms:180,  label:'OVERLOADED',  sub:'Llama · MOC-22,23'},
+  victory:     {frames:[VICTORY_A,VICTORY_B],     ms:350,  label:'VICTORY',     sub:'Claude · ✓ done'},
+  defeat:      {frames:[DEFEAT_A,DEFEAT_B],       ms:700,  label:'DEFEAT',      sub:'GPT · ✗ failed'},
+};
+
+// ─── Renderer ──────────────────────────────────────────────────────────────
+function drawFrame(ctx, frame, scale) {
+  const h = frame.length, w = frame[0].length;
+  ctx.clearRect(0, 0, w * scale, h * scale);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const c = P[frame[y][x]];
+      if (c) { ctx.fillStyle = c; ctx.fillRect(x * scale, y * scale, scale, scale); }
+    }
+  }
+}
+
+const grid = document.getElementById('grid');
+const SCALE = 5;
+
+Object.entries(STATES).forEach(([key, st]) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  // State label
+  const lbl = document.createElement('div');
+  lbl.className = 'label';
+  lbl.textContent = st.label;
+  card.appendChild(lbl);
+
+  // "runtime offline" tag — only for VACATIONING
+  if (st.offline) {
+    const tag = document.createElement('div');
+    tag.className = 'offline-tag';
+    tag.textContent = 'runtime offline';
+    card.appendChild(tag);
+  }
+
+  // Sprite canvas
+  const wrap = document.createElement('div');
+  wrap.className = 'sprite-wrap';
+
+  const cvs = document.createElement('canvas');
+  cvs.width  = 16 * SCALE;
+  cvs.height = 24 * SCALE;
+  cvs.style.width  = 16 * SCALE + 'px';
+  cvs.style.height = 24 * SCALE + 'px';
+  const ctx = cvs.getContext('2d');
+
+  let idx = 0;
+  drawFrame(ctx, st.frames[0], SCALE);
+  setInterval(() => { idx = (idx + 1) % st.frames.length; drawFrame(ctx, st.frames[idx], SCALE); }, st.ms);
+
+  wrap.appendChild(cvs);
+
+  // zzz floating letters — only for SLEEPING (online + idle)
+  if (key === 'sleeping') {
+    ['z', 'Z', 'Z'].forEach((ch, i) => {
+      const z = document.createElement('span');
+      z.className = 'zzz';
+      z.textContent = ch;
+      z.style.right = (2 + i * 10) + 'px';
+      z.style.top   = (15 + i * 6) + 'px';
+      z.style.animationDelay = (i * 0.7) + 's';
+      z.style.fontSize = (10 + i * 3) + 'px';
+      wrap.appendChild(z);
+    });
+  }
+
+  card.appendChild(wrap);
+
+  // Bottom agent/task name
+  const nm = document.createElement('div');
+  nm.className = 'name';
+  nm.textContent = st.sub;
+  card.appendChild(nm);
+
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>
