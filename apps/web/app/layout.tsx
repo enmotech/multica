@@ -1,12 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist_Mono, Source_Serif_4 } from "next/font/google";
+import { headers } from "next/headers";
+import { Inter, Geist_Mono, Source_Serif_4, Press_Start_2P } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@multica/ui/components/ui/sonner";
 import { cn } from "@multica/ui/lib/utils";
 import { WebProviders } from "@/components/web-providers";
-import type { SupportedLocale } from "@multica/core/i18n";
+import {
+  DEFAULT_LOCALE,
+  SUPPORTED_LOCALES,
+  type SupportedLocale,
+} from "@multica/core/i18n";
 import { RESOURCES } from "@multica/views/locales";
-import { getRequestLocale } from "@/lib/request-locale";
 import "./globals.css";
 
 // Font stack: Inter for Latin UI text + system Chinese fonts for zh content.
@@ -59,6 +63,14 @@ const sourceSerif = Source_Serif_4({
   ],
 });
 
+// Pixel font for the Agent Dojo page title. Loaded via next/font so it's
+// bundled at build time — no runtime CDN request needed in the container.
+const pressStart2P = Press_Start_2P({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-pixel",
+});
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -99,6 +111,10 @@ export const metadata: Metadata = {
   },
 };
 
+function isSupportedLocale(value: string | null): value is SupportedLocale {
+  return value !== null && (SUPPORTED_LOCALES as readonly string[]).includes(value);
+}
+
 // HTML lang attribute uses BCP-47 region tags that screen readers and font
 // stacks recognize widely. i18next keeps `zh-Hans` as its internal locale
 // (script subtag is what we actually translate against), but the html element
@@ -113,14 +129,18 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const locale = await getRequestLocale();
+  const h = await headers();
+  const headerLocale = h.get("x-multica-locale");
+  const locale: SupportedLocale = isSupportedLocale(headerLocale)
+    ? headerLocale
+    : DEFAULT_LOCALE;
   const resources = { [locale]: RESOURCES[locale] };
 
   return (
     <html
       lang={HTML_LANG[locale]}
       suppressHydrationWarning
-      className={cn("antialiased font-sans h-full", inter.variable, geistMono.variable, sourceSerif.variable)}
+      className={cn("antialiased font-sans h-full", inter.variable, geistMono.variable, sourceSerif.variable, pressStart2P.variable)}
     >
       <body className="h-full overflow-hidden">
         <ThemeProvider>

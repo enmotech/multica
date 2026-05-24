@@ -141,7 +141,7 @@ export function AgentDojoPage() {
     <div className="flex h-full flex-col gap-4 overflow-y-auto bg-background p-6">
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
-        <h1 className="font-mono text-lg font-bold text-brand">⚔️ Agent Dojo</h1>
+        <h1 className="text-lg font-bold text-brand" style={{ fontFamily: "var(--font-pixel), monospace" }}>⚔️ Agent Dojo</h1>
         <div className="flex items-center gap-3">
           <div className="flex gap-3 font-mono text-xs text-muted-foreground">
             {working > 0 && <span className="text-success">{working} working</span>}
