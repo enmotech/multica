@@ -61,7 +61,7 @@ vi.mock("@multica/core/paths", async () => {
 vi.mock("../../../navigation", () => ({
   useNavigation: () => ({
     push: vi.fn(),
-    pathname: "/test/issues/issue-1",
+    pathname: "/test/tasks/issue-1",
     searchParams: new URLSearchParams(),
     back: vi.fn(),
     replace: vi.fn(),
@@ -170,7 +170,7 @@ describe("useIssueActions", () => {
     });
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      "https://app.multica.com/test/issues/issue-1",
+      "https://app.multica.com/test/tasks/issue-1",
     );
   });
 
