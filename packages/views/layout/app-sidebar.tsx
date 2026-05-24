@@ -718,7 +718,19 @@ export function AppSidebar({ topSlot, searchSlot, headerClassName, headerStyle }
         </SidebarContent>
 
         <SidebarFooter className="p-2">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            <Tooltip>
+              <TooltipTrigger render={
+                <AppLink
+                  href={p.dojo()}
+                  className="flex size-7 items-center justify-center rounded text-base leading-none text-muted-foreground hover:bg-accent hover:text-foreground"
+                  aria-label="Agent Dojo"
+                >
+                  ⚔️
+                </AppLink>
+              } />
+              <TooltipContent side="right">Agent Dojo</TooltipContent>
+            </Tooltip>
             <HelpLauncher />
           </div>
         </SidebarFooter>
