@@ -11,8 +11,8 @@ import { PixelScene } from "./pixel-scene";
 import { ActivityFeed } from "./activity-feed";
 import { useDojotransitions } from "./use-dojo-transitions";
 import { usePictureInPicture } from "./use-picture-in-picture";
+import { deriveSteadyState } from "./pixel-frames";
 import type { DojoFeedEvent } from "./use-dojo-transitions";
-import type { AgentPresenceDetail } from "@multica/core/agents";
 
 type TransientOverlay = "victory" | "defeat";
 
@@ -43,18 +43,6 @@ const STATE_POSITIONS: Record<string, { x: number; y: number }[]> = {
     { x: 72, y: 16 }, { x: 78, y: 16 }, { x: 75, y: 22 },
   ],
 };
-
-/** Derive the position state key from AnimState. */
-function positionKey(presence: AgentPresenceDetail): string {
-  if (presence.availability === "offline" || presence.availability === "unstable") {
-    return "vacationing";
-  }
-  if (presence.workload === "queued") return "waiting";
-  if (presence.workload === "working") {
-    return presence.runningCount >= 2 ? "overloaded" : "working";
-  }
-  return "sleeping";
-}
 
 /**
  * The Agent Dojo page — a pixel-art room showing every agent's
@@ -108,12 +96,19 @@ export function AgentDojoPage() {
   for (const agent of agents) {
     const presence = byAgent.get(agent.id);
     if (!presence) continue;
-    const key = positionKey(presence);
+    const key = deriveSteadyState(presence);
     const idx = stateCounters[key] ?? 0;
     stateCounters[key] = idx + 1;
     const positions = STATE_POSITIONS[key] ?? STATE_POSITIONS.sleeping!;
     const pos = positions[idx % positions.length]!;
-    agentPositions.set(agent.id, { x: pos.x, y: pos.y, z: 10 + Math.floor(pos.y) });
+    // Agents beyond the slot count wrap back to the same base positions but
+    // are nudged slightly so they never sit at exactly the same coordinates.
+    const wrap = Math.floor(idx / positions.length);
+    agentPositions.set(agent.id, {
+      x: pos.x + wrap * 3,
+      y: pos.y + wrap * 2,
+      z: 10 + Math.floor(pos.y + wrap * 2),
+    });
   }
 
   // Header counters

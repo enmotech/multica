@@ -3,25 +3,13 @@
 import { memo, useEffect, useRef, useState } from "react";
 import type { AgentPresenceDetail } from "@multica/core/agents";
 import type { Agent } from "@multica/core/types";
-import { OVERLAY_DURATION_MS, type AnimState } from "./pixel-frames";
+import { deriveSteadyState, OVERLAY_DURATION_MS, type AnimState } from "./pixel-frames";
 
 interface AgentDojoCardProps {
   agent: Agent;
   presence: AgentPresenceDetail;
   /** Transient overlay to show (set by the parent via useDojotransitions). */
   overlay: "victory" | "defeat" | null;
-}
-
-/** Derives the steady-state animation from presence data. */
-function deriveSteadyState(
-  p: AgentPresenceDetail,
-): Exclude<AnimState, "victory" | "defeat"> {
-  if (p.availability === "offline" || p.availability === "unstable") {
-    return "vacationing";
-  }
-  if (p.workload === "queued") return "waiting";
-  if (p.workload === "working") return p.runningCount >= 2 ? "overloaded" : "working";
-  return "sleeping";
 }
 
 /** CSS class for the sprite animation based on state. */
