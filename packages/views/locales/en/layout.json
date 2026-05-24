@@ -33,6 +33,8 @@
     "log_out": "Log out",
     "new_issue": "New Task",
     "new_issue_shortcut": "C",
+    "active_label": "Active",
+    "no_agents_working": "No agents are working right now",
     "pinned_label": "Pinned",
     "workspace_group": "Workspace",
     "configure_group": "Configure",
