@@ -63,6 +63,12 @@ export const AgentDojoCard = memo(function AgentDojoCard({
   const [animState, setAnimState] = useState<AnimState>(steadyState);
   const overlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Always-current presence snapshot for use inside setTimeout callbacks,
+  // avoiding the stale-closure problem when `overlay` triggers but `presence`
+  // has since changed.
+  const latestPresenceRef = useRef(presence);
+  latestPresenceRef.current = presence;
+
   // Update steady state when presence changes (but not during an overlay).
   useEffect(() => {
     if (animState !== "victory" && animState !== "defeat") {
@@ -76,14 +82,11 @@ export const AgentDojoCard = memo(function AgentDojoCard({
     setAnimState(overlay);
     if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current);
     overlayTimerRef.current = setTimeout(() => {
-      setAnimState(deriveSteadyState(presence));
+      setAnimState(deriveSteadyState(latestPresenceRef.current));
     }, OVERLAY_DURATION_MS);
     return () => {
       if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current);
     };
-    // Intentionally depend on overlay identity, not presence, so the timer
-    // uses the presence at trigger time. Parent re-triggers on new events.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay]);
 
   // Frame ticker: cycle through the current state's frames.

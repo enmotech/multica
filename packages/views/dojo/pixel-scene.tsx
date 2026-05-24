@@ -13,8 +13,12 @@ function checkIsNight(): boolean {
  * Safe for SSR: initializer runs only on the client (component is "use client").
  */
 function useIsNight(): boolean {
-  const [isNight, setIsNight] = useState(checkIsNight);
+  // Initialize to false to avoid SSR/client hydration mismatch — the server
+  // has no reliable concept of "local time". The correct value is set on the
+  // first client effect, before the first paint with visible content.
+  const [isNight, setIsNight] = useState(false);
   useEffect(() => {
+    setIsNight(checkIsNight());
     const id = setInterval(() => setIsNight(checkIsNight()), 60_000);
     return () => clearInterval(id);
   }, []);
