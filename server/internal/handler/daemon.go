@@ -728,7 +728,14 @@ func (h *Handler) HandleDaemonWSHeartbeat(ctx context.Context, identity daemonws
 	}
 	rt, err := h.Queries.GetAgentRuntime(ctx, runtimeUUID)
 	if err != nil {
-		return nil, fmt.Errorf("runtime not found: %w", err)
+		if isNotFound(err) {
+			return &protocol.DaemonHeartbeatAckPayload{
+				RuntimeID:   runtimeID,
+				Status:      protocol.HeartbeatStatusRuntimeGone,
+				RuntimeGone: true,
+			}, nil
+		}
+		return nil, fmt.Errorf("get agent runtime: %w", err)
 	}
 	if identity.WorkspaceID != "" && identity.WorkspaceID != uuidToString(rt.WorkspaceID) {
 		return nil, fmt.Errorf("runtime not in connection workspace")
