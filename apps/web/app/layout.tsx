@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Inter, Geist_Mono, Source_Serif_4 } from "next/font/google";
+import { Inter, Geist_Mono, Source_Serif_4, Press_Start_2P } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@multica/ui/components/ui/sonner";
 import { cn } from "@multica/ui/lib/utils";
@@ -61,6 +61,14 @@ const sourceSerif = Source_Serif_4({
     "Times New Roman",
     "serif",
   ],
+});
+
+// Pixel font for the Agent Dojo page title. Loaded via next/font so it's
+// bundled at build time — no runtime CDN request needed in the container.
+const pressStart2P = Press_Start_2P({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-pixel",
 });
 
 export const viewport: Viewport = {
@@ -132,7 +140,7 @@ export default async function RootLayout({
     <html
       lang={HTML_LANG[locale]}
       suppressHydrationWarning
-      className={cn("antialiased font-sans h-full", inter.variable, geistMono.variable, sourceSerif.variable)}
+      className={cn("antialiased font-sans h-full", inter.variable, geistMono.variable, sourceSerif.variable, pressStart2P.variable)}
     >
       <body className="h-full overflow-hidden">
         <ThemeProvider>
