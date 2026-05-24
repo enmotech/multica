@@ -1,23 +1,15 @@
 "use client";
 
 import { memo, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import type { AgentPresenceDetail } from "@multica/core/agents";
 import type { Agent } from "@multica/core/types";
-import { OVERLAY_DURATION_MS, STATE_CONFIG, type AnimState } from "./pixel-frames";
-import { PixelCanvas } from "./pixel-canvas";
-
-/** Pixels per cell at different scale breakpoints. */
-const SCALE_NORMAL = 5;
-const SCALE_COMPACT = 4;
+import { OVERLAY_DURATION_MS, type AnimState } from "./pixel-frames";
 
 interface AgentDojoCardProps {
   agent: Agent;
   presence: AgentPresenceDetail;
   /** Transient overlay to show (set by the parent via useDojotransitions). */
   overlay: "victory" | "defeat" | null;
-  /** Compact mode when the workspace has > 12 agents. */
-  compact?: boolean;
 }
 
 /** Derives the steady-state animation from presence data. */
@@ -32,40 +24,50 @@ function deriveSteadyState(
   return "sleeping";
 }
 
-/** Label shown below the state name for each steady state. */
-const STATE_LABEL: Record<AnimState, string> = {
-  working:     "WORKING",
-  waiting:     "WAITING",
-  sleeping:    "SLEEPING",
-  vacationing: "VACATIONING",
-  overloaded:  "OVERLOADED",
-  victory:     "VICTORY",
-  defeat:      "DEFEAT",
-};
+/** CSS class for the sprite animation based on state. */
+function spriteAnimClass(state: AnimState): string {
+  switch (state) {
+    case "working":     return "dojo-anim-work";
+    case "overloaded":  return "dojo-anim-overload";
+    case "sleeping":    return "dojo-anim-sleep";
+    case "vacationing": return "dojo-anim-vacation";
+    case "waiting":     return "dojo-anim-wait";
+    case "victory":     return "dojo-anim-victory";
+    case "defeat":      return "dojo-anim-defeat";
+  }
+}
+
+/** Status dot color class. Intentionally uses hardcoded colors for pixel-art
+ *  decorative styling — these are game UI elements, not semantic app states. */
+function dotClass(state: AnimState): string {
+  switch (state) {
+    case "working":
+    case "victory":
+      return "bg-green-400 shadow-[0_0_4px_#4ade80]";
+    case "overloaded":
+    case "defeat":
+      return "bg-red-400 shadow-[0_0_4px_#ef4444]";
+    case "waiting":
+      return "bg-yellow-400 shadow-[0_0_4px_#fbbf24]";
+    case "sleeping":
+      return "bg-indigo-400";
+    case "vacationing":
+      return "bg-gray-500";
+  }
+}
 
 /**
- * Renders a single agent's pixel-art card in the Dojo.
- *
- * Steady-state animation is derived from AgentPresenceDetail. VICTORY /
- * DEFEAT overlays are driven by the parent (via useDojotransitions) so that
- * the parent can correlate snapshot diffs across all agents in one pass.
+ * Renders a single agent in the Dojo room using the tileset sprite.
  */
 export const AgentDojoCard = memo(function AgentDojoCard({
   agent,
   presence,
   overlay,
-  compact = false,
 }: AgentDojoCardProps) {
-  const scale = compact ? SCALE_COMPACT : SCALE_NORMAL;
   const steadyState = deriveSteadyState(presence);
 
-  // Active animation state: steady state unless an overlay is active.
   const [animState, setAnimState] = useState<AnimState>(steadyState);
   const overlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Always-current presence snapshot for use inside setTimeout callbacks,
-  // avoiding the stale-closure problem when `overlay` triggers but `presence`
-  // has since changed.
   const latestPresenceRef = useRef(presence);
   latestPresenceRef.current = presence;
 
@@ -89,75 +91,36 @@ export const AgentDojoCard = memo(function AgentDojoCard({
     };
   }, [overlay]);
 
-  // Frame ticker: cycle through the current state's frames.
-  const [frameIdx, setFrameIdx] = useState(0);
-  useEffect(() => {
-    setFrameIdx(0); // Reset frame index when state changes.
-    const { frames, intervalMs } = STATE_CONFIG[animState];
-    if (frames.length <= 1) return;
-    const id = setInterval(
-      () => setFrameIdx((i) => (i + 1) % frames.length),
-      intervalMs,
-    );
-    return () => clearInterval(id);
-  }, [animState]);
-
-  const { frames } = STATE_CONFIG[animState];
-  const currentFrame = frames[frameIdx % frames.length]!;
-
-  const isVacationing = animState === "vacationing";
   const isSleeping = animState === "sleeping";
 
   return (
-    <motion.div
-      layout
-      className="flex flex-col items-center gap-1 rounded-md border border-border bg-card px-3 py-2"
-      style={{ width: compact ? 100 : 120 }}
-    >
-      {/* State label */}
-      <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-brand">
-        {STATE_LABEL[animState]}
-      </span>
-
-      {/* "runtime offline" subtitle for vacationing */}
-      {isVacationing && (
-        <span className="font-mono text-[8px] uppercase tracking-widest text-destructive">
-          runtime offline
-        </span>
-      )}
-
-      {/* Sprite */}
+    <div className="flex flex-col items-center gap-0">
+      {/* Agent sprite */}
       <div className="relative">
-        <PixelCanvas frame={currentFrame} scale={scale} />
+        <img
+          src="/dojo/sprite.png"
+          alt={agent.name}
+          className={`h-[40px] w-[24px] ${spriteAnimClass(animState)}`}
+          style={{ imageRendering: "pixelated" }}
+        />
 
         {/* zzz bubbles for sleeping */}
         {isSleeping && (
-          <div className="pointer-events-none absolute right-0 top-2 select-none">
-            {(["z", "Z", "Z"] as const).map((ch, i) => (
-              <span
-                key={i}
-                className="absolute text-brand"
-                style={{
-                  right: 2 + i * 10,
-                  top: 15 + i * 6,
-                  fontSize: 10 + i * 3,
-                  animation: `dojo-zzz 2.2s ease-out ${i * 0.7}s infinite`,
-                }}
-              >
-                {ch}
-              </span>
-            ))}
+          <div className="pointer-events-none absolute right-[-8px] top-[-5px] select-none font-bold text-brand">
+            <span className="absolute" style={{ right: 0, top: 0, fontSize: 8, animation: "dojo-zzz 2.2s ease-out 0s infinite" }}>z</span>
+            <span className="absolute" style={{ right: 6, top: -4, fontSize: 10, animation: "dojo-zzz 2.2s ease-out 0.6s infinite" }}>z</span>
+            <span className="absolute" style={{ right: 12, top: -8, fontSize: 12, animation: "dojo-zzz 2.2s ease-out 1.2s infinite" }}>Z</span>
           </div>
         )}
       </div>
 
-      {/* Agent name */}
-      <span
-        className="max-w-full truncate font-mono text-[9px] text-muted-foreground"
-        title={agent.name}
-      >
-        {agent.name}
-      </span>
-    </motion.div>
+      {/* Name label */}
+      <div className="mt-0.5 flex items-center gap-1 rounded bg-black/75 px-1 py-px border border-white/10">
+        <span className={`inline-block size-[5px] rounded-full ${dotClass(animState)}`} />
+        <span className="max-w-[80px] truncate font-mono text-[7px] text-white" title={agent.name}>
+          {agent.name}
+        </span>
+      </div>
+    </div>
   );
 });
