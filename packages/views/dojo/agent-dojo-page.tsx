@@ -10,6 +10,7 @@ import { AgentDojoCard } from "./agent-dojo-card";
 import { PixelScene } from "./pixel-scene";
 import { ActivityFeed } from "./activity-feed";
 import { useDojotransitions } from "./use-dojo-transitions";
+import { usePictureInPicture } from "./use-picture-in-picture";
 import type { DojoFeedEvent } from "./use-dojo-transitions";
 import type { AgentPresenceDetail } from "@multica/core/agents";
 
@@ -83,6 +84,9 @@ export function AgentDojoPage() {
 
   useDojotransitions(snapshot, handleTransition, agents, handleFeedEvent);
 
+  const { isSupported: pipSupported, isOpen: pipOpen, toggle: pipToggle, sceneRef } =
+    usePictureInPicture({ width: 520, height: 400 });
+
   const sortedAgents = sortAgents(agents, byAgent);
   const compact = agents.length > 12;
 
@@ -114,53 +118,68 @@ export function AgentDojoPage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto bg-background p-6">
-      {/* ── Global CSS for dojo animations ── */}
-      <style>{`
-        @keyframes dojo-zzz {
-          0%   { opacity: 1; transform: translateY(0) scale(1); }
-          100% { opacity: 0; transform: translateY(-28px) scale(1.3); }
-        }
-        @keyframes dojo-window-glow {
-          0%, 100% { opacity: 0; }
-          50%       { opacity: 0.08; }
-        }
-        @keyframes feed-scroll {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-      `}</style>
-
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
         <h1 className="font-mono text-lg font-bold text-brand">⚔️ Agent Dojo</h1>
-        <div className="flex gap-3 font-mono text-xs text-muted-foreground">
-          {working > 0 && <span className="text-success">{working} working</span>}
-          {queued > 0  && <span className="text-warning">{queued} queued</span>}
-          {idle > 0    && <span>{idle} idle</span>}
-          {offline > 0 && <span className="text-muted-foreground/60">{offline} offline</span>}
+        <div className="flex items-center gap-3">
+          <div className="flex gap-3 font-mono text-xs text-muted-foreground">
+            {working > 0 && <span className="text-success">{working} working</span>}
+            {queued > 0  && <span className="text-warning">{queued} queued</span>}
+            {idle > 0    && <span>{idle} idle</span>}
+            {offline > 0 && <span className="text-muted-foreground/60">{offline} offline</span>}
+          </div>
+          {/* Pop-out button — only rendered when Document PiP is supported (Chrome 116+) */}
+          {pipSupported && (
+            <button
+              onClick={pipToggle}
+              className="flex size-7 items-center justify-center rounded text-base text-muted-foreground hover:bg-accent hover:text-foreground"
+              title={pipOpen ? "Close pop-out" : "Pop out"}
+              aria-label={pipOpen ? "Close floating dojo window" : "Pop out dojo to a floating window"}
+            >
+              {pipOpen ? "✕" : "⧉"}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* ── Agent grid inside the pixel scene ── */}
-      <PixelScene>
-        {sortedAgents.map((agent) => {
-          const presence = byAgent.get(agent.id);
-          if (!presence) return null;
-          const overlayEntry = overlays.get(agent.id);
-          return (
-            <AgentDojoCard
-              key={agent.id}
-              agent={agent}
-              presence={presence}
-              overlay={overlayEntry?.type ?? null}
-              compact={compact}
-            />
-          );
-        })}
-      </PixelScene>
+      {/* ── Scene + feed: wrapped so both move into the PiP window together ── */}
+      <div ref={sceneRef} className="flex min-h-0 flex-1 flex-col gap-4 bg-background">
+        {/* Keyframes travel with the scene so they work inside the PiP window */}
+        <style>{`
+          @keyframes dojo-zzz {
+            0%   { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-28px) scale(1.3); }
+          }
+          @keyframes dojo-window-glow {
+            0%, 100% { opacity: 0; }
+            50%       { opacity: 0.08; }
+          }
+          @keyframes feed-scroll {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+          }
+        `}</style>
+        {/* Agent grid inside the pixel scene */}
+        <PixelScene>
+          {sortedAgents.map((agent) => {
+            const presence = byAgent.get(agent.id);
+            if (!presence) return null;
+            const overlayEntry = overlays.get(agent.id);
+            return (
+              <AgentDojoCard
+                key={agent.id}
+                agent={agent}
+                presence={presence}
+                overlay={overlayEntry?.type ?? null}
+                compact={compact}
+              />
+            );
+          })}
+        </PixelScene>
 
-      {/* ── Activity feed ticker ── */}
-      <ActivityFeed events={feedEvents} />
+        {/* Activity feed ticker */}
+        <ActivityFeed events={feedEvents} />
+      </div>
     </div>
   );
 }
