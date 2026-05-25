@@ -173,7 +173,7 @@ func TestEmailService_InvitationSubjectStripsControls(t *testing.T) {
 	if strings.ContainsAny(capturedSubject, "\r\n\t") {
 		t.Errorf("subject still contains control characters: %q", capturedSubject)
 	}
-	if capturedSubject != "Alice invited you to Acme on Multica" {
+	if capturedSubject != "Alice invited you to Acme on MoClaw" {
 		t.Errorf("unexpected subject: %q", capturedSubject)
 	}
 }
