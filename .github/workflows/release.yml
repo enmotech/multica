@@ -14,8 +14,8 @@ permissions:
 
 env:
   SWR_REGISTRY: swr.cn-north-4.myhuaweicloud.com
-  SWR_IMAGE_BACKEND: swr.cn-north-4.myhuaweicloud.com/moclaw/multica-backend
-  SWR_IMAGE_WEB: swr.cn-north-4.myhuaweicloud.com/moclaw/multica-web
+  SWR_IMAGE_BACKEND: swr.cn-north-4.myhuaweicloud.com/moclaw/moclaw-backend
+  SWR_IMAGE_WEB: swr.cn-north-4.myhuaweicloud.com/moclaw/moclaw-web
 
 jobs:
   verify:
@@ -145,6 +145,7 @@ jobs:
           context: .
           file: Dockerfile
           pull: true
+          provenance: false
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=release-backend-${{ env.PLATFORM_PAIR }}
@@ -296,6 +297,7 @@ jobs:
           context: .
           file: Dockerfile.web
           pull: true
+          provenance: false
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=release-web-${{ env.PLATFORM_PAIR }}
