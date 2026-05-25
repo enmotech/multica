@@ -17,6 +17,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/multica-ai/multica/server/pkg/db/generated"
 	"github.com/multica-ai/multica/server/pkg/protocol"
+
+	"github.com/multica-ai/multica/server/internal/skillfrontmatter"
 )
 
 // sanitizeNullBytes makes a string safe for a PostgreSQL TEXT column.
@@ -1182,25 +1184,7 @@ func skillNameHints(skillName string) []string {
 
 // parseSkillFrontmatter extracts name and description from YAML frontmatter in SKILL.md.
 func parseSkillFrontmatter(content string) (name, description string) {
-	if !strings.HasPrefix(content, "---") {
-		return "", ""
-	}
-	end := strings.Index(content[3:], "---")
-	if end < 0 {
-		return "", ""
-	}
-	frontmatter := content[3 : 3+end]
-	for _, line := range strings.Split(frontmatter, "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "name:") {
-			name = strings.TrimSpace(strings.TrimPrefix(line, "name:"))
-			name = strings.Trim(name, "\"'")
-		} else if strings.HasPrefix(line, "description:") {
-			description = strings.TrimSpace(strings.TrimPrefix(line, "description:"))
-			description = strings.Trim(description, "\"'")
-		}
-	}
-	return name, description
+	return skillfrontmatter.Parse(content)
 }
 
 // --- GitHub import ---
