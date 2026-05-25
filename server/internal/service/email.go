@@ -79,7 +79,7 @@ func resolveProvider() Provider {
 }
 
 func (s *EmailService) SendVerificationCode(to, code string) error {
-	subject := "Your Multica verification code"
+	subject := "Your MoClaw verification code"
 	body := fmt.Sprintf(
 		`<div style="font-family: sans-serif; max-width: 400px; margin: 0 auto;">
 			<h2>Your verification code</h2>
@@ -102,11 +102,11 @@ func (s *EmailService) SendInvitationEmail(to, inviterName, workspaceName, invit
 	subjectInviter := sanitizeSubjectField(inviterName)
 	subjectWorkspace := sanitizeSubjectField(workspaceName)
 
-	subject := fmt.Sprintf("%s invited you to %s on Multica", subjectInviter, subjectWorkspace)
+	subject := fmt.Sprintf("%s invited you to %s on MoClaw", subjectInviter, subjectWorkspace)
 	body := fmt.Sprintf(
 		`<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
 			<h2>You're invited to join %s</h2>
-			<p><strong>%s</strong> invited you to collaborate in the <strong>%s</strong> workspace on Multica.</p>
+			<p><strong>%s</strong> invited you to collaborate in the <strong>%s</strong> workspace on MoClaw.</p>
 			<p style="margin: 24px 0;">
 				<a href="%s" style="display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500;">Accept invitation</a>
 			</p>
