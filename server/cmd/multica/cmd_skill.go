@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -54,8 +55,15 @@ var skillDeleteCmd = &cobra.Command{
 
 var skillImportCmd = &cobra.Command{
 	Use:   "import",
-	Short: "Import a skill from a URL (clawhub.ai, skills.sh, or github.com)",
+	Short: "Import a skill from a URL or local path",
 	RunE:  runSkillImport,
+}
+
+var skillExportCmd = &cobra.Command{
+	Use:   "export [<skill-id>...]",
+	Short: "Export skills to local directories",
+	Long:  "Export one or more skills to SKILL.md + files on disk.\nUse --all to export all skills in the workspace.",
+	RunE:  runSkillExport,
 }
 
 // Skill file subcommands.
@@ -93,6 +101,7 @@ func init() {
 	skillCmd.AddCommand(skillUpdateCmd)
 	skillCmd.AddCommand(skillDeleteCmd)
 	skillCmd.AddCommand(skillImportCmd)
+	skillCmd.AddCommand(skillExportCmd)
 	skillCmd.AddCommand(skillFilesCmd)
 
 	skillFilesCmd.AddCommand(skillFilesListCmd)
@@ -123,8 +132,14 @@ func init() {
 	skillDeleteCmd.Flags().Bool("yes", false, "Skip confirmation prompt")
 
 	// skill import
-	skillImportCmd.Flags().String("url", "", "URL to import from (required)")
+	skillImportCmd.Flags().String("url", "", "URL to import from")
+	skillImportCmd.Flags().String("path", "", "Path to a skill directory or parent directory to scan")
+	skillImportCmd.Flags().Bool("update", false, "Update existing skills on name conflict instead of skipping")
 	skillImportCmd.Flags().String("output", "json", "Output format: table or json")
+
+	// skill export
+	skillExportCmd.Flags().String("output-dir", ".", "Output directory for exported skills")
+	skillExportCmd.Flags().Bool("all", false, "Export all skills in the workspace")
 
 	// skill files list
 	skillFilesListCmd.Flags().String("output", "table", "Output format: table or json")
@@ -327,14 +342,28 @@ func runSkillDelete(cmd *cobra.Command, args []string) error {
 }
 
 func runSkillImport(cmd *cobra.Command, _ []string) error {
+	importURL, _ := cmd.Flags().GetString("url")
+	importPath, _ := cmd.Flags().GetString("path")
+	shouldUpdate, _ := cmd.Flags().GetBool("update")
+
+	if importURL == "" && importPath == "" {
+		return fmt.Errorf("--url or --path is required")
+	}
+	if importURL != "" && importPath != "" {
+		return fmt.Errorf("--url and --path are mutually exclusive")
+	}
+
+	if importURL != "" {
+		return runSkillImportURL(cmd, importURL)
+	}
+
+	return runSkillImportPath(cmd, importPath, shouldUpdate)
+}
+
+func runSkillImportURL(cmd *cobra.Command, importURL string) error {
 	client, err := newAPIClient(cmd)
 	if err != nil {
 		return err
-	}
-
-	importURL, _ := cmd.Flags().GetString("url")
-	if importURL == "" {
-		return fmt.Errorf("--url is required")
 	}
 
 	body := map[string]any{
@@ -355,6 +384,173 @@ func runSkillImport(cmd *cobra.Command, _ []string) error {
 	}
 
 	fmt.Printf("Skill imported: %s (%s)\n", strVal(result, "name"), strVal(result, "id"))
+	return nil
+}
+
+func runSkillImportPath(cmd *cobra.Command, importPath string, shouldUpdate bool) error {
+	client, err := newAPIClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	scanned, err := scanSkills(importPath)
+	if err != nil {
+		return fmt.Errorf("scan skills: %w", err)
+	}
+	if len(scanned) == 0 {
+		return fmt.Errorf("no skills found in %s (looking for directories containing SKILL.md)", importPath)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	imported := 0
+	skipped := 0
+	errorCount := 0
+
+	for _, s := range scanned {
+		skill, err := loadSkillFromDir(s.DirPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading %s: %v\n", s.DirPath, err)
+			errorCount++
+			continue
+		}
+
+		body := map[string]any{
+			"name":        skill.Name,
+			"description": skill.Description,
+			"content":     skill.Content,
+			"files":       skill.Files,
+		}
+
+		var result map[string]any
+		err = client.PostJSON(ctx, "/api/skills", body, &result)
+
+		if err != nil {
+			errStr := err.Error()
+			if strings.Contains(errStr, "already exists") || strings.Contains(errStr, "409") {
+				if !shouldUpdate {
+					fmt.Printf("Skipped: %s (already exists, use --update to overwrite)\n", skill.Name)
+					skipped++
+					continue
+				}
+				existingID, findErr := findSkillIDByName(ctx, client, skill.Name)
+				if findErr != nil {
+					fmt.Fprintf(os.Stderr, "Error finding %s for update: %v\n", skill.Name, findErr)
+					errorCount++
+					continue
+				}
+				updateBody := map[string]any{
+					"description": skill.Description,
+					"content":     skill.Content,
+					"files":       skill.Files,
+				}
+				err = client.PutJSON(ctx, "/api/skills/"+existingID, updateBody, &result)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error updating %s: %v\n", skill.Name, err)
+					errorCount++
+					continue
+				}
+				fmt.Printf("Updated: %s (%s)\n", skill.Name, existingID)
+				imported++
+				continue
+			}
+			fmt.Fprintf(os.Stderr, "Error importing %s: %v\n", skill.Name, err)
+			errorCount++
+			continue
+		}
+
+		fmt.Printf("Imported: %s (%s)\n", strVal(result, "name"), strVal(result, "id"))
+		imported++
+	}
+
+	fmt.Printf("\nDone: %d imported, %d skipped, %d errors\n", imported, skipped, errorCount)
+	return nil
+}
+
+func findSkillIDByName(ctx context.Context, client *cli.APIClient, name string) (string, error) {
+	var skills []map[string]any
+	if err := client.GetJSON(ctx, "/api/skills", &skills); err != nil {
+		return "", fmt.Errorf("list skills: %w", err)
+	}
+	for _, s := range skills {
+		if strVal(s, "name") == name {
+			return strVal(s, "id"), nil
+		}
+	}
+	return "", fmt.Errorf("skill %q not found in workspace", name)
+}
+
+func runSkillExport(cmd *cobra.Command, args []string) error {
+	exportAll, _ := cmd.Flags().GetBool("all")
+	outputDir, _ := cmd.Flags().GetString("output-dir")
+
+	if exportAll && len(args) > 0 {
+		return fmt.Errorf("cannot use --all with skill IDs")
+	}
+	if !exportAll && len(args) == 0 {
+		return fmt.Errorf("specify skill IDs or use --all")
+	}
+
+	client, err := newAPIClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	var skillIDs []string
+
+	if exportAll {
+		var skills []map[string]any
+		if err := client.GetJSON(ctx, "/api/skills", &skills); err != nil {
+			return fmt.Errorf("list skills: %w", err)
+		}
+		for _, s := range skills {
+			skillIDs = append(skillIDs, strVal(s, "id"))
+		}
+	} else {
+		skillIDs = args
+	}
+
+	if err := os.MkdirAll(outputDir, 0o755); err != nil {
+		return fmt.Errorf("create output directory: %w", err)
+	}
+
+	exported := 0
+	errorCount := 0
+	for _, id := range skillIDs {
+		var resp struct {
+			Name        string `json:"name"`
+			Description string `json:"description"`
+			Content     string `json:"content"`
+			Files       []struct {
+				Path    string `json:"path"`
+				Content string `json:"content"`
+			} `json:"files"`
+		}
+		if err := client.GetJSON(ctx, "/api/skills/"+id, &resp); err != nil {
+			fmt.Fprintf(os.Stderr, "Error fetching %s: %v\n", id, err)
+			errorCount++
+			continue
+		}
+
+		dir := filepath.Join(outputDir, slugifySkillName(resp.Name))
+		files := make([]skillFileData, 0, len(resp.Files))
+		for _, f := range resp.Files {
+			files = append(files, skillFileData{Path: f.Path, Content: f.Content})
+		}
+		if err := writeSkillToDisk(resp.Content, files, dir); err != nil {
+			fmt.Fprintf(os.Stderr, "Error exporting %s: %v\n", resp.Name, err)
+			errorCount++
+			continue
+		}
+		fmt.Printf("Exported: %s → %s\n", resp.Name, dir)
+		exported++
+	}
+
+	fmt.Printf("\nDone: %d exported, %d errors\n", exported, errorCount)
 	return nil
 }
 
