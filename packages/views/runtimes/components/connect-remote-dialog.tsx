@@ -118,8 +118,11 @@ export function ConnectRemoteDialog({ onClose }: { onClose: () => void }) {
 
 const INSTALL_CMD = "curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash";
 
-const CONFIGURE_CMD = `multica config set server_url https://api.multica.ai
-multica config set app_url https://multica.ai`;
+function useConfigureCmd(): string {
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://multica.ai";
+  return `multica config set server_url ${origin}
+multica config set app_url ${origin}`;
+}
 
 const LOGIN_CMD = "multica login --token <YOUR_TOKEN>";
 
@@ -170,6 +173,7 @@ function InstructionsStep({
   onClose: () => void;
 }) {
   const { t } = useT("runtimes");
+  const configureCmd = useConfigureCmd();
   return (
     <>
       <DialogHeader>
@@ -200,7 +204,7 @@ function InstructionsStep({
               {t(($) => $.connect.step2)}
             </div>
             <CodeBlock
-              code={CONFIGURE_CMD}
+              code={configureCmd}
               copyKey="config"
               copied={copied}
               onCopy={onCopy}
