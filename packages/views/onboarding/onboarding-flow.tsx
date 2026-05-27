@@ -180,11 +180,14 @@ export function OnboardingFlow({
   );
 
   const handleBack = useCallback((from: OnboardingStep) => {
-    const idx = ONBOARDING_STEP_ORDER.indexOf(from);
+    const order = skipRuntime
+      ? ONBOARDING_STEP_ORDER.filter((s) => s !== "runtime" && s !== "agent")
+      : ONBOARDING_STEP_ORDER;
+    const idx = order.indexOf(from);
     if (idx <= 0) return;
-    const prev = ONBOARDING_STEP_ORDER[idx - 1]!;
+    const prev = order[idx - 1]!;
     setStep(prev);
-  }, []);
+  }, [skipRuntime]);
 
   // Step 5 fired `completeOnboarding` itself. Here we just route the
   // user to their workspace — the starter-content decision happens
