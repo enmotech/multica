@@ -50,7 +50,7 @@
       },
       "status_changes": {
         "label": "状态变更",
-        "description": "你订阅的任务状态变化时（例如 todo、in progress、done）"
+        "description": "你订阅的任务状态变化时（例如待办、进行中、已完成）"
       },
       "comments": {
         "label": "评论与提及",

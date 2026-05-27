@@ -130,7 +130,7 @@
     "link_copy_failed": "复制链接失败",
     "workdir_path_copied": "已复制本地 workdir 路径",
     "workdir_path_copy_failed": "复制本地 workdir 路径失败",
-    "workdir_path_unavailable": "暂无本地 workdir — 这个任务还没被本地 agent 运行过"
+    "workdir_path_unavailable": "暂无本地 workdir — 这个任务还没被本地智能体运行过"
   },
   "timeline": {
     "loading": "加载中…"
@@ -309,7 +309,7 @@
   },
   "backlog_hint": {
     "title": "智能体在 backlog 状态下暂停",
-    "description": "这个任务处于待规划状态，被分配的智能体会等待。准备启动时把它移到 todo。",
+    "description": "这个任务处于待规划状态，被分配的智能体会等待。准备启动时把它移到待办。",
     "row_backlog_label": "Backlog",
     "row_backlog_hint": "智能体保持暂停",
     "row_todo_label": "Todo",
