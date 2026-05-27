@@ -193,9 +193,9 @@ function makeTab(path: string, title: string, icon: string): Tab {
   };
 }
 
-/** Default entry point for a workspace — its issues list. */
+/** Default entry point for a workspace — its tasks list. */
 function defaultPathFor(slug: string): string {
-  return `/${slug}/issues`;
+  return `/${slug}/tasks`;
 }
 
 function defaultTabFor(slug: string): Tab {

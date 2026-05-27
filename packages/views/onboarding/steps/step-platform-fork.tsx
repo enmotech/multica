@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowLeft, ArrowRight, Download } from "lucide-react";
+import { ArrowLeft, ArrowRight, /* [DESKTOP_DOWNLOAD_DISABLED] Download */ } from "lucide-react";
 import {
-  captureDownloadIntent,
+  // [DESKTOP_DOWNLOAD_DISABLED] captureDownloadIntent,
   captureEvent,
   setPersonProperties,
 } from "@multica/core/analytics";
@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@multica/ui/components/ui/dialog";
 import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
-import { cn } from "@multica/ui/lib/utils";
+// [DESKTOP_DOWNLOAD_DISABLED] import { cn } from "@multica/ui/lib/utils";
 import type { AgentRuntime } from "@multica/core/types";
 import { DragStrip } from "@multica/views/platform";
 import { StepHeader } from "../components/step-header";
@@ -52,11 +52,11 @@ import { useT } from "../../i18n";
 
 type DialogState = "cli" | "cloud" | null;
 
-// Single canonical download destination — the /download page owns
+// [DESKTOP_DOWNLOAD_DISABLED] Single canonical download destination — the /download page owns
 // OS + arch detection, the All-Platforms matrix, release-note links,
 // and the CLI / Cloud alternates. Kept in sync with landing-hero.tsx
 // and landing footer nav, both of which target the same path.
-const DOWNLOAD_PAGE_URL = "/download";
+// const DOWNLOAD_PAGE_URL = "/download";
 
 export function StepPlatformFork({
   wsId,
@@ -80,7 +80,8 @@ export function StepPlatformFork({
   const fadeStyle = useScrollFade(mainRef);
 
   const [dialog, setDialog] = useState<DialogState>(null);
-  const [downloaded, setDownloaded] = useState(false);
+  // [DESKTOP_DOWNLOAD_DISABLED] — `downloaded` was previously set by pickDesktop; kept as constant for hint logic.
+  const downloaded = false;
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
 
   // Platform signal retained purely for PostHog dimensions — the UI
@@ -94,25 +95,19 @@ export function StepPlatformFork({
 
   const picker = useRuntimePicker(wsId);
 
-  const pickDesktop = () => {
-    window.open(DOWNLOAD_PAGE_URL, "_blank", "noopener,noreferrer");
-    setDownloaded(true);
-    // Step-3-scoped path selection event (kept for existing funnels);
-    // `source: "step3"` future-proofs if the event is reused from
-    // another surface later.
-    captureEvent("onboarding_runtime_path_selected", {
-      workspace_id: wsId,
-      path: "download_desktop",
-      source: "onboarding",
-      surface: "step3",
-      is_mac: isMac,
-    });
-    // Cross-surface Desktop intent event — also fires from landing
-    // hero / footer / login / Welcome. Enables the top-of-funnel
-    // split without retrofitting `onboarding_runtime_path_selected`
-    // to non-onboarding contexts.
-    captureDownloadIntent("step3");
-  };
+  // [DESKTOP_DOWNLOAD_DISABLED] — Uncomment pickDesktop when re-enabling the desktop download card.
+  // const pickDesktop = () => {
+  //   window.open(DOWNLOAD_PAGE_URL, "_blank", "noopener,noreferrer");
+  //   setDownloaded(true);
+  //   captureEvent("onboarding_runtime_path_selected", {
+  //     workspace_id: wsId,
+  //     path: "download_desktop",
+  //     source: "onboarding",
+  //     surface: "step3",
+  //     is_mac: isMac,
+  //   });
+  //   captureDownloadIntent("step3");
+  // };
 
   const handleOpenCli = () => {
     setDialog("cli");
@@ -194,7 +189,8 @@ export function StepPlatformFork({
             </p>
 
             <div className="mt-10 flex max-w-[560px] flex-col gap-3.5">
-              <ForkPrimary onClick={pickDesktop} downloaded={downloaded} />
+              {/* [DESKTOP_DOWNLOAD_DISABLED] — Uncomment to re-enable the "Download Desktop" primary card on the runtime selection page. */}
+              {/* <ForkPrimary onClick={pickDesktop} downloaded={downloaded} /> */}
 
               <ForkAlt
                 title={t(($) => $.step_platform.cli_title)}
@@ -271,46 +267,47 @@ export function StepPlatformFork({
 // Fork cards
 // ------------------------------------------------------------
 
-function ForkPrimary({
-  onClick,
-  downloaded,
-}: {
-  onClick: () => void;
-  downloaded: boolean;
-}) {
-  const { t } = useT("onboarding");
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "group flex items-center justify-between gap-4 rounded-xl bg-foreground px-6 py-5 text-left text-background transition-transform",
-        "hover:-translate-y-0.5",
-      )}
-    >
-      <div className="min-w-0">
-        <div className="flex items-center gap-2 text-[17px] font-medium tracking-tight">
-          <Download className="h-4 w-4" aria-hidden />
-          {downloaded
-            ? t(($) => $.step_platform.download_title_after)
-            : t(($) => $.step_platform.download_title)}
-        </div>
-        <div className="mt-1 text-[13px] text-background/60">
-          {downloaded
-            ? t(($) => $.step_platform.download_subtitle_after)
-            : t(($) => $.step_platform.download_subtitle)}
-        </div>
-      </div>
-      <span
-        aria-hidden
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-background/10 px-4 py-2 text-[13px] font-medium transition-colors group-hover:bg-background/20"
-      >
-        {t(($) => $.step_platform.download_button)}
-        <ArrowRight className="h-3.5 w-3.5" />
-      </span>
-    </button>
-  );
-}
+// [DESKTOP_DOWNLOAD_DISABLED] — Uncomment ForkPrimary when re-enabling the desktop download card.
+// function ForkPrimary({
+//   onClick,
+//   downloaded,
+// }: {
+//   onClick: () => void;
+//   downloaded: boolean;
+// }) {
+//   const { t } = useT("onboarding");
+//   return (
+//     <button
+//       type="button"
+//       onClick={onClick}
+//       className={cn(
+//         "group flex items-center justify-between gap-4 rounded-xl bg-foreground px-6 py-5 text-left text-background transition-transform",
+//         "hover:-translate-y-0.5",
+//       )}
+//     >
+//       <div className="min-w-0">
+//         <div className="flex items-center gap-2 text-[17px] font-medium tracking-tight">
+//           <Download className="h-4 w-4" aria-hidden />
+//           {downloaded
+//             ? t(($) => $.step_platform.download_title_after)
+//             : t(($) => $.step_platform.download_title)}
+//         </div>
+//         <div className="mt-1 text-[13px] text-background/60">
+//           {downloaded
+//             ? t(($) => $.step_platform.download_subtitle_after)
+//             : t(($) => $.step_platform.download_subtitle)}
+//         </div>
+//       </div>
+//       <span
+//         aria-hidden
+//         className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-background/10 px-4 py-2 text-[13px] font-medium transition-colors group-hover:bg-background/20"
+//       >
+//         {t(($) => $.step_platform.download_button)}
+//         <ArrowRight className="h-3.5 w-3.5" />
+//       </span>
+//     </button>
+//   );
+// }
 
 /**
  * Alt card with an explicit right-side action pill. The whole card is

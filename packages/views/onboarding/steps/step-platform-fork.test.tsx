@@ -91,9 +91,11 @@ describe("StepPlatformFork", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders the three fork options at rest", () => {
+  // [DESKTOP_DOWNLOAD_DISABLED] — Desktop download card is commented out.
+  // Update this test when re-enabling.
+  it("renders the two fork options at rest (desktop download disabled)", () => {
     renderFork();
-    expect(screen.getByText(/download the desktop app/i)).toBeInTheDocument();
+    expect(screen.queryByText(/download the desktop app/i)).not.toBeInTheDocument();
     expect(screen.getByText(/^install the cli$/i)).toBeInTheDocument();
     expect(screen.getByText(/^cloud runtime$/i)).toBeInTheDocument();
     // Dialogs closed at rest → no CLI instructions, no email field.
@@ -124,7 +126,9 @@ describe("StepPlatformFork", () => {
     expect(onNext).toHaveBeenCalledWith(null);
   });
 
-  it("opens the download page and flips the card to a post-click state", async () => {
+  // [DESKTOP_DOWNLOAD_DISABLED] — Desktop download card is commented out.
+  // Restore this test when re-enabling.
+  it.skip("opens the download page and flips the card to a post-click state", async () => {
     const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
     const user = userEvent.setup();
     renderFork();

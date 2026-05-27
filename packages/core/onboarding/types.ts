@@ -22,6 +22,7 @@ export type OnboardingCompletionPath =
 export type TeamSize = "solo" | "team" | "other";
 
 export type Role =
+  | "dba"
   | "developer"
   | "product_lead"
   | "writer"
@@ -29,6 +30,7 @@ export type Role =
   | "other";
 
 export type UseCase =
+  | "db_management"
   | "coding"
   | "planning"
   | "writing_research"

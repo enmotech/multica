@@ -235,7 +235,7 @@ func (h *Handler) checkSignupAllowed(email string, isNewUser bool) error {
 
 	// 4. if allowlists are set but didn't match, block
 	if len(h.cfg.AllowedEmailDomains) > 0 || len(h.cfg.AllowedEmails) > 0 {
-		return ErrSignupProhibited
+		return ErrEmailNotAllowed
 	}
 
 	return nil

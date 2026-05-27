@@ -22,9 +22,9 @@ import {
 } from "@multica/ui/components/ui/card";
 import { Button } from "@multica/ui/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { captureDownloadIntent } from "@multica/core/analytics";
+// [DESKTOP_DOWNLOAD_DISABLED] import { captureDownloadIntent } from "@multica/core/analytics";
 import { setLoggedInCookie } from "@/features/auth/auth-cookie";
-import Link from "next/link";
+// [DESKTOP_DOWNLOAD_DISABLED] import Link from "next/link";
 import { LoginPage, validateCliCallback } from "@multica/views/auth";
 import { useT } from "@multica/views/i18n";
 
@@ -59,6 +59,7 @@ function LoginPageContent() {
   const qc = useQueryClient();
   const { t } = useT("auth");
   const googleClientId = useConfigStore((state) => state.googleClientId);
+  const allowedEmailDomains = useConfigStore((state) => state.allowedEmailDomains);
   const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
   const searchParams = useSearchParams();
@@ -203,18 +204,20 @@ function LoginPageContent() {
           : undefined
       }
       onTokenObtained={setLoggedInCookie}
-      extra={
-        <span className="text-xs text-muted-foreground">
-          {t(($) => $.web.prefer_desktop)}{" "}
-          <Link
-            href="/download"
-            onClick={() => captureDownloadIntent("login")}
-            className="font-medium text-foreground underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground/70"
-          >
-            {t(($) => $.web.download)}
-          </Link>
-        </span>
-      }
+      allowedEmailDomains={allowedEmailDomains || undefined}
+      // [DESKTOP_DOWNLOAD_DISABLED] — Uncomment the extra prop below to re-enable the "Prefer desktop app? Download" link on the login page.
+      // extra={
+      //   <span className="text-xs text-muted-foreground">
+      //     {t(($) => $.web.prefer_desktop)}{" "}
+      //     <Link
+      //       href="/download"
+      //       onClick={() => captureDownloadIntent("login")}
+      //       className="font-medium text-foreground underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground/70"
+      //     >
+      //       {t(($) => $.web.download)}
+      //     </Link>
+      //   </span>
+      // }
     />
   );
 }

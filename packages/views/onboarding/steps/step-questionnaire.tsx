@@ -175,6 +175,11 @@ export function StepQuestionnaire({
                 ariaLabel={t(($) => $.questionnaire.q2_question)}
               >
                 <OptionCard
+                  selected={answers.role === "dba"}
+                  onSelect={() => setRole("dba")}
+                  label={t(($) => $.questionnaire.q2_dba)}
+                />
+                <OptionCard
                   selected={answers.role === "developer"}
                   onSelect={() => setRole("developer")}
                   label={t(($) => $.questionnaire.q2_developer)}
@@ -210,6 +215,11 @@ export function StepQuestionnaire({
                 question={t(($) => $.questionnaire.q3_question)}
                 ariaLabel={t(($) => $.questionnaire.q3_question)}
               >
+                <OptionCard
+                  selected={answers.use_case === "db_management"}
+                  onSelect={() => setUseCase("db_management")}
+                  label={t(($) => $.questionnaire.q3_db_management)}
+                />
                 <OptionCard
                   selected={answers.use_case === "coding"}
                   onSelect={() => setUseCase("coding")}

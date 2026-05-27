@@ -849,6 +849,7 @@ export class ApiClient {
     cdn_domain: string;
     allow_signup: boolean;
     google_client_id?: string;
+    allowed_email_domains?: string;
     posthog_key?: string;
     posthog_host?: string;
     analytics_environment?: string;

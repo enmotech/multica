@@ -27,6 +27,7 @@ export function recommendTemplate(
 
   if (role === "other" || role === "founder") return "assistant";
   if (role === "writer") return "writing";
+  if (role === "dba") return "coding";
 
   if (role === "developer") {
     return use_case === "planning" ? "planning" : "coding";

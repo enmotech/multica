@@ -26,6 +26,7 @@ describe("paths.workspace() shape", () => {
         "runtimes",
         "skills",
         "settings",
+        "dojo",
       ]),
     );
   });
@@ -35,15 +36,16 @@ describe("paths.workspace() shape", () => {
     // Check that none of the parameterless paths embed a leaked literal
     // and that their second URL segment matches the method name's kebab-case.
     const expectedSegments: Array<[string, string]> = [
-      ["issues", "issues"],
+      ["issues", "tasks"],
       ["projects", "projects"],
       ["autopilots", "autopilots"],
       ["agents", "agents"],
       ["inbox", "inbox"],
-      ["myIssues", "my-issues"],
+      ["myIssues", "my-tasks"],
       ["runtimes", "runtimes"],
       ["skills", "skills"],
       ["settings", "settings"],
+      ["dojo", "dojo"],
     ];
     const wsAsAny = ws as unknown as Record<string, () => string>;
     for (const [method, segment] of expectedSegments) {

@@ -5,17 +5,19 @@ interface ConfigState {
   cdnDomain: string;
   allowSignup: boolean;
   googleClientId: string;
+  allowedEmailDomains: string;
   setCdnDomain: (domain: string) => void;
-  setAuthConfig: (config: { allowSignup: boolean; googleClientId?: string }) => void;
+  setAuthConfig: (config: { allowSignup: boolean; googleClientId?: string; allowedEmailDomains?: string }) => void;
 }
 
 export const configStore = createStore<ConfigState>((set) => ({
   cdnDomain: "",
   allowSignup: true,
   googleClientId: "",
+  allowedEmailDomains: "",
   setCdnDomain: (domain) => set({ cdnDomain: domain }),
-  setAuthConfig: ({ allowSignup, googleClientId = "" }) =>
-    set({ allowSignup, googleClientId }),
+  setAuthConfig: ({ allowSignup, googleClientId = "", allowedEmailDomains = "" }) =>
+    set({ allowSignup, googleClientId, allowedEmailDomains }),
 }));
 
 export function useConfigStore(): ConfigState;
