@@ -30,7 +30,7 @@
   "health": {
     "online": {
       "label": "在线",
-      "description": "最近 45 秒内收到心跳。可以派发 task。"
+      "description": "最近 45 秒内收到心跳。可以派发任务。"
     },
     "recently_lost": {
       "label": "最近失联",
@@ -108,7 +108,7 @@
     "waiting_hint_suffix": " 来确认它在运行。",
     "back": "返回",
     "success_title": "运行时已连接！",
-    "success_description": "你的远程机器已注册为运行时。现在可以创建一个智能体，把 task 派发到它上。",
+    "success_description": "你的远程机器已注册为运行时。现在可以创建一个智能体，把任务派发到它上。",
     "view_runtime": "查看运行时",
     "create_agent": "创建智能体"
   },

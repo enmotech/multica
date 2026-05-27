@@ -1,10 +1,10 @@
 {
   "page": {
-    "breadcrumb_title": "task",
+    "breadcrumb_title": "任务",
     "breadcrumb_workspace_fallback": "工作区",
-    "empty_title": "还没有 task",
-    "empty_hint": "创建一个 task 开始使用。",
-    "move_failed": "移动 task 失败"
+    "empty_title": "还没有任务",
+    "empty_hint": "创建一个任务开始使用。",
+    "move_failed": "移动任务失败"
   },
   "status": {
     "backlog": "待规划",
@@ -24,11 +24,11 @@
   },
   "scope": {
     "all_label": "全部",
-    "all_description": "工作区内的全部 task",
+    "all_description": "工作区内的全部任务",
     "members_label": "成员",
-    "members_description": "分配给成员的 task",
+    "members_description": "分配给成员的任务",
     "agents_label": "智能体",
-    "agents_description": "分配给智能体的 task"
+    "agents_description": "分配给智能体的任务"
   },
   "filters": {
     "tooltip": "筛选",
@@ -45,7 +45,7 @@
     "section_label": "标签",
     "members_group": "成员",
     "agents_group": "智能体",
-    "issue_count_other": "{{count}} 个 task",
+    "issue_count_other": "{{count}} 个任务",
     "reset": "重置全部筛选"
   },
   "display": {
@@ -65,7 +65,7 @@
     "card_due_date": "截止日期",
     "card_project": "项目",
     "card_labels": "标签",
-    "card_child_progress": "子 task 进度"
+    "card_child_progress": "子任务进度"
   },
   "view": {
     "tooltip_board": "看板视图",
@@ -75,28 +75,28 @@
     "list": "列表"
   },
   "list": {
-    "empty_status": "无 task",
-    "add_issue_tooltip": "新建 task"
+    "empty_status": "无任务",
+    "add_issue_tooltip": "新建任务"
   },
   "board": {
     "hidden_columns_label": "隐藏的列",
     "hide_column": "隐藏列",
     "show_column": "显示列",
-    "add_issue_tooltip": "新建 task",
-    "empty_column": "无 task"
+    "add_issue_tooltip": "新建任务",
+    "empty_column": "无任务"
   },
   "detail": {
-    "not_found": "这个 task 不存在或已在该工作区被删除。",
-    "back_to_issues": "返回 task 列表",
-    "title_placeholder": "task 标题",
+    "not_found": "这个任务不存在或已在该工作区被删除。",
+    "back_to_issues": "返回任务列表",
+    "title_placeholder": "任务标题",
     "desc_placeholder": "添加描述...",
-    "sub_issues_label": "子 task",
-    "sub_issue_of": "属于父 task",
-    "add_sub_issues": "添加子 task",
-    "add_sub_issue_tooltip": "添加子 task",
-    "add_sub_issue_aria": "添加子 task",
+    "sub_issues_label": "子任务",
+    "sub_issue_of": "属于父任务",
+    "add_sub_issues": "添加子任务",
+    "add_sub_issue_tooltip": "添加子任务",
+    "add_sub_issue_aria": "添加子任务",
     "section_properties": "属性",
-    "section_parent_issue": "父 task",
+    "section_parent_issue": "父任务",
     "section_details": "详情",
     "section_token_usage": "Token 用量",
     "prop_status": "状态",
@@ -125,19 +125,19 @@
     "pin_tooltip": "固定到侧边栏",
     "unpin_tooltip": "从侧边栏取消固定",
     "sidebar_tooltip": "切换侧边栏",
-    "update_failed": "更新 task 失败",
+    "update_failed": "更新任务失败",
     "link_copied": "已复制链接",
     "link_copy_failed": "复制链接失败",
     "workdir_path_copied": "已复制本地 workdir 路径",
     "workdir_path_copy_failed": "复制本地 workdir 路径失败",
-    "workdir_path_unavailable": "暂无本地 workdir — 这个 issue 还没被本地 agent 运行过"
+    "workdir_path_unavailable": "暂无本地 workdir — 这个任务还没被本地 agent 运行过"
   },
   "timeline": {
     "loading": "加载中…"
   },
   "activity": {
-    "created": "创建了这个 task",
-    "self_assigned": "把这个 task 分配给了自己",
+    "created": "创建了这个任务",
+    "self_assigned": "把这个任务分配给了自己",
     "assigned_to": "分配给 {{name}}",
     "removed_assignee": "移除了负责人",
     "changed_assignee": "更改了负责人",
@@ -145,12 +145,12 @@
     "priority_changed": "优先级从 {{from}} 改为 {{to}}",
     "due_date_set": "截止日期设为 {{date}}",
     "due_date_removed": "移除了截止日期",
-    "title_renamed": "把这个 task 从\"{{from}}\"重命名为\"{{to}}\"",
+    "title_renamed": "把这个任务从\"{{from}}\"重命名为\"{{to}}\"",
     "description_updated": "更新了描述",
-    "task_completed_one": "完成了 task",
-    "task_completed_other": "完成了 task（{{count}} 次）",
-    "task_failed_one": "task 失败",
-    "task_failed_other": "task 失败（{{count}} 次）",
+    "task_completed_one": "完成了任务",
+    "task_completed_other": "完成了任务（{{count}} 次）",
+    "task_failed_one": "任务失败",
+    "task_failed_other": "任务失败（{{count}} 次）",
     "coalesced_badge": "×{{count}}"
   },
   "comment": {
@@ -197,19 +197,19 @@
     "transcript_button": "查看记录",
     "stop_button": "停止",
     "stop_tooltip": "停止智能体",
-    "cancel_failed": "取消 task 失败"
+    "cancel_failed": "取消任务失败"
   },
   "execution_log": {
     "section": "执行日志",
     "show_past": "显示历史运行（{{count}}）",
     "hide_past": "隐藏历史运行（{{count}}）",
-    "cancel_task_tooltip": "取消 task",
-    "cancel_task_aria": "取消 task",
-    "retry_task_tooltip": "重试 task",
-    "retry_task_aria": "重试 task",
-    "retry_failed": "重试 task 失败",
+    "cancel_task_tooltip": "取消任务",
+    "cancel_task_aria": "取消任务",
+    "retry_task_tooltip": "重试任务",
+    "retry_task_aria": "重试任务",
+    "retry_failed": "重试任务失败",
     "transcript_tooltip": "查看记录",
-    "cancel_failed": "取消 task 失败",
+    "cancel_failed": "取消任务失败",
     "trigger_retry": "重试",
     "trigger_retry_attempt": "重试 #{{attempt}}",
     "trigger_retry_attempt_prefix": "重试 #{{attempt}} · ",
@@ -230,17 +230,17 @@
     "priority": "优先级",
     "assignee": "负责人",
     "delete": "删除",
-    "update_success_other": "已更新 {{count}} 个 task",
-    "update_failed": "更新 task 失败",
-    "delete_success_other": "已删除 {{count}} 个 task",
-    "delete_failed": "删除 task 失败",
-    "delete_dialog_title_other": "删除 {{count}} 个 task？",
-    "delete_dialog_desc_other": "此操作无法撤销，所选 task 及其全部关联数据都会被永久删除。",
-    "delete_dialog_warning": "任何工作区成员都可以删除 task。",
+    "update_success_other": "已更新 {{count}} 个任务",
+    "update_failed": "更新任务失败",
+    "delete_success_other": "已删除 {{count}} 个任务",
+    "delete_failed": "删除任务失败",
+    "delete_dialog_title_other": "删除 {{count}} 个任务？",
+    "delete_dialog_desc_other": "此操作无法撤销，所选任务及其全部关联数据都会被永久删除。",
+    "delete_dialog_warning": "任何工作区成员都可以删除任务。",
     "cancel": "取消"
   },
   "card": {
-    "update_failed": "更新 task 失败"
+    "update_failed": "更新任务失败"
   },
   "actions": {
     "status": "状态",
@@ -257,10 +257,10 @@
     "copy_link": "复制链接",
     "copy_workdir_path": "复制本地 workdir 路径",
     "more": "更多",
-    "create_sub_issue": "创建子 task",
-    "set_parent_issue": "设置父 task...",
-    "add_sub_issue": "添加子 task...",
-    "delete_issue": "删除 task"
+    "create_sub_issue": "创建子任务",
+    "set_parent_issue": "设置父任务...",
+    "add_sub_issue": "添加子任务...",
+    "delete_issue": "删除任务"
   },
   "pickers": {
     "filter_options_aria": "筛选选项",
@@ -285,7 +285,7 @@
     }
   },
   "labels_panel": {
-    "intro": "创建和管理标签，用于在工作区内分类 task。",
+    "intro": "创建和管理标签，用于在工作区内分类任务。",
     "new_placeholder": "新标签名称...",
     "new_aria": "新标签名称",
     "add_action": "添加",
@@ -300,7 +300,7 @@
     "cancel_aria": "取消",
     "delete_dialog_title": "删除标签？",
     "delete_dialog_desc_prefix": "标签 ",
-    "delete_dialog_desc_suffix": " 会从全部 task 上移除，无法撤销。",
+    "delete_dialog_desc_suffix": " 会从全部任务上移除，无法撤销。",
     "delete_dialog_cancel": "取消",
     "delete_dialog_confirm": "删除",
     "create_failed": "创建标签失败",
@@ -309,7 +309,7 @@
   },
   "backlog_hint": {
     "title": "智能体在 backlog 状态下暂停",
-    "description": "这个 task 处于待规划状态，被分配的智能体会等待。准备启动时把它移到 todo。",
+    "description": "这个任务处于待规划状态，被分配的智能体会等待。准备启动时把它移到 todo。",
     "row_backlog_label": "Backlog",
     "row_backlog_hint": "智能体保持暂停",
     "row_todo_label": "Todo",
