@@ -88,7 +88,7 @@
   "queued_other": "{{count}} queued",
   "connect": {
     "title": "Connect a remote machine",
-    "description": "Run these commands on your remote machine (e.g. AWS EC2) to install the MoClaw CLI and register it as a runtime.",
+    "description": "Run these commands on your remote machine (e.g. AWS EC2) to install the multica CLI and register it as a runtime.",
     "step1": "1. Install the CLI",
     "step2": "2. Configure",
     "step3": "3. Login with a personal access token",

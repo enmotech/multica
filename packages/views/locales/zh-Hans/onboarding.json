@@ -90,7 +90,7 @@
   "cli_install": {
     "copy_aria": "复制",
     "intro": "守护进程需要本机有一个 AI 编程工具（Claude Code、Codex、Cursor 等）才能执行真实工作。也支持服务器和远程开发机。",
-    "step1_label": "安装 MoClaw CLI",
+    "step1_label": "安装 multica CLI",
     "step2_label": "启动守护进程"
   },
   "starter_content": {

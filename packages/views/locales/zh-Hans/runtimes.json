@@ -83,7 +83,7 @@
   "queued_other": "{{count}} 个排队中",
   "connect": {
     "title": "连接远程机器",
-    "description": "在远程机器（例如 AWS EC2）上运行这些命令，安装 MoClaw CLI 并注册为运行时。",
+    "description": "在远程机器（例如 AWS EC2）上运行这些命令，安装 multica CLI 并注册为运行时。",
     "step1": "1. 安装 CLI",
     "step2": "2. 配置",
     "step3": "3. 用个人访问令牌登录",

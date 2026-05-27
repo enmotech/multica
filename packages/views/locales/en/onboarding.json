@@ -90,7 +90,7 @@
   "cli_install": {
     "copy_aria": "Copy",
     "intro": "You'll need an AI coding tool on this machine (Claude Code, Codex, Cursor, …) for the daemon to do real work. Also works on servers and remote dev boxes.",
-    "step1_label": "Install the MoClaw CLI",
+    "step1_label": "Install the multica CLI",
     "step2_label": "Start the daemon"
   },
   "starter_content": {

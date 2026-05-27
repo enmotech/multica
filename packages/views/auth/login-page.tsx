@@ -428,9 +428,14 @@ export function LoginPage({
           </CardTitle>
           <CardDescription>
             {allowedEmailDomains
-              ? t(($) => $.signin.description_restricted, { domains: allowedEmailDomains })
+              ? t(($) => $.signin.description_restricted)
               : t(($) => $.signin.description)}
           </CardDescription>
+          {allowedEmailDomains && (
+            <p className="text-xs text-muted-foreground">
+              {t(($) => $.signin.domain_hint, { domains: allowedEmailDomains })}
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <form id="login-form" onSubmit={handleSendCode} className="space-y-4">
