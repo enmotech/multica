@@ -1,8 +1,8 @@
 {
   "nav": {
     "inbox": "收件箱",
-    "my_issues": "我的 Task",
-    "issues": "Task",
+    "my_issues": "我的任务",
+    "issues": "任务",
     "projects": "项目",
     "autopilots": "自动化",
     "agents": "智能体",
@@ -29,7 +29,7 @@
     "invitation_join": "加入",
     "invitation_decline": "拒绝",
     "log_out": "退出登录",
-    "new_issue": "新建 task",
+    "new_issue": "新建任务",
     "new_issue_shortcut": "C",
     "active_label": "活跃",
     "no_agents_working": "当前没有 agent 在运行",

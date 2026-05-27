@@ -54,12 +54,12 @@
     "section_progress": "进度",
     "section_description": "描述",
     "description_placeholder": "添加描述...",
-    "empty_issues_title": "还没有关联的 task",
-    "empty_issues_hint": "新建一个 task，或把已有的 task 关联到这个项目。",
-    "empty_issues_new_button": "新建 task",
+    "empty_issues_title": "还没有关联的任务",
+    "empty_issues_hint": "新建一个任务，或把已有的任务关联到这个项目。",
+    "empty_issues_new_button": "新建任务",
     "toast_link_copied": "已复制链接",
     "toast_project_deleted": "已删除项目",
-    "toast_move_issue_failed": "移动 task 失败"
+    "toast_move_issue_failed": "移动任务失败"
   },
   "resources": {
     "section_header": "资源",
@@ -77,7 +77,7 @@
   },
   "delete_dialog": {
     "title": "删除项目",
-    "description": "将删除这个项目。task 不会被删除，只会从项目中解除关联。",
+    "description": "将删除这个项目。任务不会被删除，只会从项目中解除关联。",
     "confirm": "删除",
     "cancel": "取消"
   },
