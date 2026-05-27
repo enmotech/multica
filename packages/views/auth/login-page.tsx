@@ -61,6 +61,9 @@ interface LoginPageProps {
    *  app?" prompt; desktop omits it (a download prompt inside the app
    *  would be absurd). */
   extra?: ReactNode;
+  /** Comma-separated list of allowed email domains. When set, the UI shows
+   *  a restriction hint and adjusts the placeholder. */
+  allowedEmailDomains?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -105,6 +108,7 @@ export function LoginPage({
   onTokenObtained,
   onGoogleLogin,
   extra,
+  allowedEmailDomains,
 }: LoginPageProps) {
   const { t } = useT("auth");
   const qc = useQueryClient();
@@ -177,11 +181,20 @@ export function LoginPage({
         setCode("");
         setCooldown(60);
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : `${t(($) => $.errors.send_failed)} ${t(($) => $.errors.server_unreachable)}`,
-        );
+        const msg = err instanceof Error ? err.message : "";
+        if (msg.includes("not allowed")) {
+          setError(
+            allowedEmailDomains
+              ? t(($) => $.errors.domain_not_allowed, { domains: allowedEmailDomains })
+              : t(($) => $.errors.domain_not_allowed, { domains: "" }),
+          );
+        } else if (msg.includes("registration is disabled")) {
+          setError(t(($) => $.errors.registration_disabled));
+        } else {
+          setError(
+            msg || `${t(($) => $.errors.send_failed)} ${t(($) => $.errors.server_unreachable)}`,
+          );
+        }
       } finally {
         setLoading(false);
       }
@@ -414,7 +427,9 @@ export function LoginPage({
             {t(($) => $.signin.title)}
           </CardTitle>
           <CardDescription>
-            {t(($) => $.signin.description)}
+            {allowedEmailDomains
+              ? t(($) => $.signin.description_restricted, { domains: allowedEmailDomains })
+              : t(($) => $.signin.description)}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -424,7 +439,9 @@ export function LoginPage({
               <Input
                 id="login-email"
                 type="email"
-                placeholder={t(($) => $.common.email_placeholder)}
+                placeholder={allowedEmailDomains
+                  ? `you@${allowedEmailDomains.split(",")[0]?.trim() ?? allowedEmailDomains}`
+                  : t(($) => $.common.email_placeholder)}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoFocus

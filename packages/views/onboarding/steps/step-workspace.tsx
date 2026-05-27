@@ -219,8 +219,8 @@ export function StepWorkspace({
           {t(($) => $.step_workspace.url_label)}
         </Label>
         <div className="flex items-center rounded-md border bg-muted transition-colors focus-within:border-foreground">
-          <span className="select-none pl-3 font-mono text-sm text-muted-foreground">
-            {"multica.ai/"}
+            <span className="select-none pl-3 font-mono text-sm text-muted-foreground" suppressHydrationWarning>
+            {`${typeof window !== "undefined" ? window.location.host : ""}/`}
           </span>
           <Input
             id="ws-slug"
@@ -378,8 +378,8 @@ function ExistingWorkspaceCard({
         <div className="truncate text-[14.5px] font-medium text-foreground">
           {workspace.name}
         </div>
-        <div className="truncate font-mono text-xs text-muted-foreground">
-          {`multica.ai/${workspace.slug}`}
+        <div className="truncate font-mono text-xs text-muted-foreground" suppressHydrationWarning>
+          {`${typeof window !== "undefined" ? window.location.host : ""}/${workspace.slug}`}
         </div>
       </div>
       <RadioMark selected={selected} />
@@ -514,8 +514,8 @@ function WorkspacePreviewCard({
           <div className="truncate text-[14px] font-medium text-foreground">
             {name}
           </div>
-          <div className="truncate font-mono text-[11.5px] text-muted-foreground">
-            {`multica.ai/${slug}`}
+          <div className="truncate font-mono text-[11.5px] text-muted-foreground" suppressHydrationWarning>
+            {`${typeof window !== "undefined" ? window.location.host : ""}/${slug}`}
           </div>
         </div>
         <Lock

@@ -4,6 +4,7 @@ import {
   ONBOARDING_STEP_ORDER,
   type OnboardingStep,
 } from "@multica/core/onboarding";
+import { useConfigStore } from "@multica/core/config";
 import { cn } from "@multica/ui/lib/utils";
 import { useT } from "../../i18n";
 
@@ -25,15 +26,22 @@ import { useT } from "../../i18n";
  * `currentStep` — so adding, removing, or reordering a step only
  * requires editing the array.
  *
+ * Self-hosted instances with domain restrictions skip the runtime/agent
+ * steps, so the progress indicator automatically excludes them.
+ *
  * Not rendered on the Welcome screen: the caller (OnboardingFlow)
  * decides whether to include this component based on whether the
  * current render step is "welcome". See flow orchestrator for the
  * mapping from local UI step to the canonical `OnboardingStep`.
  */
-export function StepHeader({ currentStep }: { currentStep: OnboardingStep }) {
+export function StepHeader({ currentStep, steps }: { currentStep: OnboardingStep; steps?: readonly OnboardingStep[] }) {
   const { t } = useT("onboarding");
-  const total = ONBOARDING_STEP_ORDER.length;
-  const currentIndex = ONBOARDING_STEP_ORDER.indexOf(currentStep);
+  const allowedEmailDomains = useConfigStore((s) => s.allowedEmailDomains);
+  const order = steps ?? (allowedEmailDomains
+    ? ONBOARDING_STEP_ORDER.filter((s) => s !== "runtime" && s !== "agent")
+    : ONBOARDING_STEP_ORDER);
+  const total = order.length;
+  const currentIndex = order.indexOf(currentStep);
   // Defensive: unknown step → render a disabled-looking header rather
   // than throw. Happens if the caller's local step union and the store
   // enum drift during refactors.
@@ -49,7 +57,7 @@ export function StepHeader({ currentStep }: { currentStep: OnboardingStep }) {
       className="flex w-full items-center justify-between py-2"
     >
       <div className="flex items-center gap-2">
-        {ONBOARDING_STEP_ORDER.map((stepId, i) => {
+        {order.map((stepId, i) => {
           const isDone = i < safeIndex;
           const isCurrent = i === safeIndex;
           return (

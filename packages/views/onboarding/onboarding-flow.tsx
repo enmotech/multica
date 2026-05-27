@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { captureEvent } from "@multica/core/analytics";
 import { setCurrentWorkspace } from "@multica/core/platform";
 import { useAuthStore } from "@multica/core/auth";
+import { useConfigStore } from "@multica/core/config";
 import {
   completeOnboarding,
   ONBOARDING_STEP_ORDER,
@@ -110,6 +111,11 @@ export function OnboardingFlow({
   // introducing a redundant prop.
   const isWeb = !!runtimeInstructions;
 
+  // Self-hosted instances with domain restrictions skip the runtime/agent
+  // steps — runtime is managed by the operator, not individual users.
+  const allowedEmailDomains = useConfigStore((s) => s.allowedEmailDomains);
+  const skipRuntime = !!allowedEmailDomains;
+
   const handleWelcomeNext = useCallback(() => {
     setStep("questionnaire");
   }, []);
@@ -144,8 +150,8 @@ export function OnboardingFlow({
   const handleWorkspaceCreated = useCallback((ws: Workspace) => {
     setWorkspace(ws);
     setCurrentWorkspace(ws.slug, ws.id);
-    setStep("runtime");
-  }, []);
+    setStep(skipRuntime ? "first_issue" : "runtime");
+  }, [skipRuntime]);
 
   const handleRuntimeNext = useCallback((rt: AgentRuntime | null) => {
     setRuntime(rt);
@@ -174,11 +180,14 @@ export function OnboardingFlow({
   );
 
   const handleBack = useCallback((from: OnboardingStep) => {
-    const idx = ONBOARDING_STEP_ORDER.indexOf(from);
+    const order = skipRuntime
+      ? ONBOARDING_STEP_ORDER.filter((s) => s !== "runtime" && s !== "agent")
+      : ONBOARDING_STEP_ORDER;
+    const idx = order.indexOf(from);
     if (idx <= 0) return;
-    const prev = ONBOARDING_STEP_ORDER[idx - 1]!;
+    const prev = order[idx - 1]!;
     setStep(prev);
-  }, []);
+  }, [skipRuntime]);
 
   // Step 5 fired `completeOnboarding` itself. Here we just route the
   // user to their workspace — the starter-content decision happens
