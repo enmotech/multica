@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-
+	
 	"github.com/multica-ai/multica/server/internal/skillfrontmatter"
 )
 
@@ -47,7 +47,7 @@ func scanSkills(root string) ([]scannedSkill, error) {
 		}
 		return []scannedSkill{{DirPath: root, Name: name}}, nil
 	}
-
+	
 	var skills []scannedSkill
 	visited := make(map[string]bool)
 	scanDirForSkills(root, root, 0, visited, &skills)
@@ -66,12 +66,12 @@ func scanDirForSkills(root, current string, depth int, visited map[string]bool, 
 		return
 	}
 	visited[resolved] = true
-
+	
 	entries, err := os.ReadDir(current)
 	if err != nil {
 		return
 	}
-
+	
 	for _, entry := range entries {
 		name := entry.Name()
 		if strings.HasPrefix(name, ".") {
@@ -82,7 +82,7 @@ func scanDirForSkills(root, current string, depth int, visited map[string]bool, 
 		if statErr != nil || !info.IsDir() {
 			continue
 		}
-
+		
 		skillMdPath := filepath.Join(path, "SKILL.md")
 		if _, err := os.Stat(skillMdPath); err == nil {
 			content, err := os.ReadFile(skillMdPath)
@@ -96,7 +96,7 @@ func scanDirForSkills(root, current string, depth int, visited map[string]bool, 
 			*skills = append(*skills, scannedSkill{DirPath: path, Name: skillName})
 			continue
 		}
-
+		
 		scanDirForSkills(root, path, depth+1, visited, skills)
 	}
 }
@@ -119,21 +119,21 @@ func loadSkillFromDir(dir string) (*skillLoadResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read SKILL.md: %w", err)
 	}
-
-	name, description, body := skillfrontmatter.ParseBody(string(raw))
+	content := string(raw)
+	name, description := skillfrontmatter.Parse(content)
 	if name == "" {
 		return nil, fmt.Errorf("skill name is required in SKILL.md frontmatter (%s)", dir)
 	}
-
+	
 	files, err := collectSkillFiles(dir)
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return &skillLoadResult{
 		Name:        name,
 		Description: description,
-		Content:     strings.TrimSpace(body),
+		Content:     content,
 		Files:       files,
 	}, nil
 }
@@ -143,10 +143,10 @@ func collectSkillFiles(skillDir string) ([]skillFileData, error) {
 	if resolved, err := filepath.EvalSymlinks(skillDir); err == nil {
 		walkRoot = resolved
 	}
-
+	
 	var files []skillFileData
 	var totalSize int64
-
+	
 	err := filepath.WalkDir(walkRoot, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return nil
@@ -166,7 +166,7 @@ func collectSkillFiles(skillDir string) ([]skillFileData, error) {
 		if strings.EqualFold(entry.Name(), "SKILL.md") {
 			return nil
 		}
-
+		
 		rel, err := filepath.Rel(walkRoot, path)
 		if err != nil {
 			return nil
@@ -175,7 +175,7 @@ func collectSkillFiles(skillDir string) ([]skillFileData, error) {
 		if rel == "." || filepath.IsAbs(rel) || strings.HasPrefix(rel, "..") {
 			return nil
 		}
-
+		
 		info, err := entry.Info()
 		if err != nil || info.Size() > skillMaxFileSize {
 			return fmt.Errorf("file %s exceeds %d byte limit", rel, skillMaxFileSize)
@@ -187,7 +187,7 @@ func collectSkillFiles(skillDir string) ([]skillFileData, error) {
 		if totalSize > skillMaxBundleSize {
 			return fmt.Errorf("skill exceeds %d byte total limit", skillMaxBundleSize)
 		}
-
+		
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return nil
@@ -198,7 +198,7 @@ func collectSkillFiles(skillDir string) ([]skillFileData, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Path < files[j].Path
 	})
@@ -209,12 +209,12 @@ func writeSkillToDisk(content string, files []skillFileData, dir string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create skill directory: %w", err)
 	}
-
+	
 	skillMdPath := filepath.Join(dir, "SKILL.md")
 	if err := os.WriteFile(skillMdPath, []byte(content), 0o644); err != nil {
 		return fmt.Errorf("write SKILL.md: %w", err)
 	}
-
+	
 	for _, f := range files {
 		filePath := filepath.Join(dir, filepath.FromSlash(f.Path))
 		fileDir := filepath.Dir(filePath)
@@ -225,6 +225,6 @@ func writeSkillToDisk(content string, files []skillFileData, dir string) error {
 			return fmt.Errorf("write file %s: %w", f.Path, err)
 		}
 	}
-
+	
 	return nil
 }
