@@ -24,11 +24,11 @@
   },
   "scope": {
     "all_label": "全部",
-    "all_description": "工作区内的全部 task",
+    "all_description": "工作区内的全部任务",
     "members_label": "成员",
-    "members_description": "分配给成员的 task",
+    "members_description": "分配给成员的任务",
     "agents_label": "智能体",
-    "agents_description": "分配给智能体的 task"
+    "agents_description": "分配给智能体的任务"
   },
   "filters": {
     "tooltip": "筛选",
@@ -46,7 +46,7 @@
     "members_group": "成员",
     "agents_group": "智能体",
     "squads_group": "小队",
-    "issue_count_other": "{{count}} 个 task",
+    "issue_count_other": "{{count}} 个任务",
     "reset": "重置全部筛选",
     "active_count_other": "{{count}} 个筛选"
   },
@@ -72,7 +72,7 @@
     "card_due_date": "截止日期",
     "card_project": "项目",
     "card_labels": "标签",
-    "card_child_progress": "子 task 进度"
+    "card_child_progress": "子任务进度"
   },
   "view": {
     "tooltip_board": "看板视图",
@@ -91,36 +91,36 @@
     "zoom_week": "周",
     "zoom_month": "月",
     "show_completed": "显示已完成",
-    "empty": "暂无已排期的 issue — 给任意 issue 设置开始或截止日期，即可显示在时间轴上。",
+    "empty": "暂无已排期的 issue — 给任意任务设置开始或截止日期，即可显示在时间轴上。",
     "inverted_dates_warning": "开始日期晚于截止日期 — 已按区间最小/最大端绘制。"
   },
   "actor_issues": {
     "scope": {
       "assigned": {
         "label": "已分配",
-        "description": "分配给这个成员或智能体的 issue"
+        "description": "分配给这个成员或智能体的任务"
       },
       "created": {
         "label": "已创建",
-        "description": "这个成员或智能体创建的 issue"
+        "description": "这个成员或智能体创建的任务"
       }
     },
     "empty": {
       "assigned": {
-        "title": "没有已分配的 issue",
-        "description": "分配到这里的 issue 会显示在此视图中。"
+        "title": "没有已分配的任务",
+        "description": "分配到这里的任务会显示在此视图中。"
       },
       "created": {
-        "title": "没有已创建的 issue",
-        "description": "由这里创建的 issue 会显示在此视图中。"
+        "title": "没有已创建的任务",
+        "description": "由这里创建的任务会显示在此视图中。"
       }
     },
-    "search_placeholder": "搜索 issue...",
-    "search_empty": "没有匹配的 issue。"
+    "search_placeholder": "搜索任务...",
+    "search_empty": "没有匹配的任务"
   },
   "list": {
-    "empty_status": "无 task",
-    "add_issue_tooltip": "新建 task"
+    "empty_status": "无任务",
+    "add_issue_tooltip": "新建任务"
   },
   "swimlane": {
     "no_parent": "无父级",
@@ -132,24 +132,24 @@
     "hidden_columns_label": "隐藏的列",
     "hide_column": "隐藏列",
     "show_column": "显示列",
-    "add_issue_tooltip": "新建 task",
-    "empty_column": "无 task",
-    "empty_grouping": "没有匹配的 issue",
+    "add_issue_tooltip": "新建任务",
+    "empty_column": "无任务",
+    "empty_grouping": "没有匹配的任务",
     "ordered_by": "按{{field}}排序"
   },
   "detail": {
     "not_found": "这个 task 不存在或已在该工作区被删除。",
     "breadcrumb_project_unknown": "未知项目",
-    "back_to_issues": "返回 task 列表",
-    "title_placeholder": "task 标题",
+    "back_to_issues": "返回任务列表",
+    "title_placeholder": "任务标题",
     "desc_placeholder": "添加描述...",
-    "sub_issues_label": "子 task",
-    "sub_issue_of": "属于父 task",
-    "add_sub_issues": "添加子 task",
-    "add_sub_issue_tooltip": "添加子 task",
-    "add_sub_issue_aria": "添加子 task",
+    "sub_issues_label": "子任务",
+    "sub_issue_of": "属于父任务",
+    "add_sub_issues": "添加子任务",
+    "add_sub_issue_tooltip": "添加子任务",
+    "add_sub_issue_aria": "添加子任务",
     "section_properties": "属性",
-    "section_parent_issue": "父 task",
+    "section_parent_issue": "父任务",
     "section_pull_requests": "Pull Request",
     "section_metadata": "元数据",
     "section_details": "详情",
@@ -219,8 +219,8 @@
     "loading": "加载中…"
   },
   "activity": {
-    "created": "创建了这个 task",
-    "self_assigned": "把这个 task 分配给了自己",
+    "created": "创建了这个任务",
+    "self_assigned": "把这个任务分配给了自己",
     "assigned_to": "分配给 {{name}}",
     "removed_assignee": "移除了负责人",
     "changed_assignee": "更改了负责人",
@@ -230,12 +230,12 @@
     "start_date_removed": "移除了开始日期",
     "due_date_set": "截止日期设为 {{date}}",
     "due_date_removed": "移除了截止日期",
-    "title_renamed": "把这个 task 从\"{{from}}\"重命名为\"{{to}}\"",
+    "title_renamed": "把这个任务从\"{{from}}\"重命名为\"{{to}}\"",
     "description_updated": "更新了描述",
-    "task_completed_one": "完成了 task",
-    "task_completed_other": "完成了 task（{{count}} 次）",
-    "task_failed_one": "task 失败",
-    "task_failed_other": "task 失败（{{count}} 次）",
+    "task_completed_one": "完成了任务",
+    "task_completed_other": "完成了任务{{count}} 次）",
+    "task_failed_one": "任务失败",
+    "task_failed_other": "任务失败（{{count}} 次）",
     "squad_leader_evaluated": "评估了小队触发",
     "squad_leader_action": "已评估并采取了操作",
     "squad_leader_action_reason": "已评估并采取了操作：{{reason}}",
@@ -331,10 +331,10 @@
   },
   "terminate_dialog": {
     "title": "确定停止该 task？",
-    "body": "Task 会被取消且无法恢复。",
-    "running_note": " 进行中的 task 可能需要几秒才能完全停止。",
+    "body": "任务会被取消且无法恢复。",
+    "running_note": " 进行中的任务可能需要几秒才能完全停止。",
     "keep": "保留运行",
-    "confirm": "停止 task"
+    "confirm": "停止任务"
   },
   "batch": {
     "selected": "已选择 {{count}} 个",
