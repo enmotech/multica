@@ -19,6 +19,20 @@ import (
 
 const DefaultUpdateDownloadTimeout = 120 * time.Second
 
+// githubReleaseRepo is the GitHub repository that publishes multica CLI
+// release assets. Must match the repo configured in .goreleaser.yml and
+// .github/workflows/release.yml.
+const githubReleaseRepo = "enmotech/multica"
+
+// brewTapFormula is the Homebrew formula identifier used by UpdateViaBrew.
+// Must match the brews config in .goreleaser.yml.
+const brewTapFormula = "enmotech/homebrew-tap/multica"
+
+// releaseAPIURL constructs a GitHub releases API URL for the given path segment.
+func releaseAPIURL(path string) string {
+	return "https://api.github.com/repos/" + githubReleaseRepo + "/" + path
+}
+
 // GitHubRelease is the subset of the GitHub releases API response we need.
 type GitHubRelease struct {
 	TagName string               `json:"tag_name"`
@@ -73,7 +87,7 @@ func findReleaseAsset(assets []GitHubReleaseAsset, targetVersion, goos, goarch s
 
 func fetchReleaseByTag(tag string) (*GitHubRelease, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest(http.MethodGet, "https://api.github.com/repos/multica-ai/multica/releases/tags/"+tag, nil)
+	req, err := http.NewRequest(http.MethodGet, releaseAPIURL("releases/tags/"+tag), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +113,7 @@ func fetchReleaseByTag(tag string) (*GitHubRelease, error) {
 // FetchLatestRelease fetches the latest release tag from the multica GitHub repo.
 func FetchLatestRelease() (*GitHubRelease, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest(http.MethodGet, "https://api.github.com/repos/multica-ai/multica/releases/latest", nil)
+	req, err := http.NewRequest(http.MethodGet, releaseAPIURL("releases/latest"), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -167,10 +181,10 @@ func GetBrewPrefix() string {
 	return strings.TrimSpace(string(out))
 }
 
-// UpdateViaBrew runs `brew upgrade multica-ai/tap/multica`.
+// UpdateViaBrew runs `brew upgrade` with the configured Homebrew tap formula.
 // Returns the combined output and any error.
 func UpdateViaBrew() (string, error) {
-	cmd := exec.Command("brew", "upgrade", "multica-ai/tap/multica")
+	cmd := exec.Command("brew", "upgrade", brewTapFormula)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return string(out), fmt.Errorf("brew upgrade failed: %w", err)

@@ -69,6 +69,15 @@ function getLaunchedBy(metadata: Record<string, unknown>): string | null {
   return null;
 }
 
+function getCanSelfUpdate(
+  metadata: Record<string, unknown>,
+): boolean | undefined {
+  if (metadata && typeof metadata.can_self_update === "boolean") {
+    return metadata.can_self_update;
+  }
+  return undefined;
+}
+
 function shortDaemonId(id: string | null): string | null {
   if (!id) return null;
   if (id.length <= 10) return id;
@@ -95,6 +104,10 @@ export function RuntimeDetail({ runtime }: { runtime: AgentRuntime }) {
     runtime.runtime_mode === "local" ? getCliVersion(runtime.metadata) : null;
   const launchedBy =
     runtime.runtime_mode === "local" ? getLaunchedBy(runtime.metadata) : null;
+  const canSelfUpdate =
+    runtime.runtime_mode === "local"
+      ? getCanSelfUpdate(runtime.metadata)
+      : undefined;
 
   const user = useAuthStore((s) => s.user);
   const wsId = useWorkspaceId();
@@ -216,6 +229,7 @@ export function RuntimeDetail({ runtime }: { runtime: AgentRuntime }) {
               runtime={runtime}
               cliVersion={cliVersion}
               launchedBy={launchedBy}
+              canSelfUpdate={canSelfUpdate}
               canDelete={!!canDelete}
               onDelete={() => setDeleteOpen(true)}
             />
@@ -488,12 +502,14 @@ function DiagnosticsCard({
   runtime,
   cliVersion,
   launchedBy,
+  canSelfUpdate,
   canDelete,
   onDelete,
 }: {
   runtime: AgentRuntime;
   cliVersion: string | null;
   launchedBy: string | null;
+  canSelfUpdate?: boolean;
   canDelete: boolean;
   onDelete: () => void;
 }) {
@@ -515,6 +531,7 @@ function DiagnosticsCard({
               currentVersion={cliVersion}
               isOnline={runtime.status === "online"}
               launchedBy={launchedBy}
+              canSelfUpdate={canSelfUpdate}
             />
           </div>
         )}

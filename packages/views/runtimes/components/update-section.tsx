@@ -5,6 +5,7 @@ import {
   XCircle,
   ArrowUpCircle,
   Check,
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@multica/ui/components/ui/button";
 import { api } from "@multica/core/api";
@@ -12,7 +13,7 @@ import type { RuntimeUpdateStatus } from "@multica/core/types";
 import { useT } from "../../i18n";
 
 const GITHUB_RELEASES_URL =
-  "https://api.github.com/repos/multica-ai/multica/releases/latest";
+  "https://api.github.com/repos/enmotech/multica/releases/latest";
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 let cachedLatestVersion: string | null = null;
@@ -74,6 +75,13 @@ interface UpdateSectionProps {
    * is disabled — upgrading would be clobbered on the next launch anyway.
    */
   launchedBy?: string | null;
+  /**
+   * Whether the daemon can replace its own binary. False when the CLI is
+   * installed in a root-owned directory (e.g. via sudo into /usr/local/bin).
+   * Defaults to true for backward compatibility with older daemons that do
+   * not report this field.
+   */
+  canSelfUpdate?: boolean;
 }
 
 export function UpdateSection({
@@ -81,6 +89,7 @@ export function UpdateSection({
   currentVersion,
   isOnline,
   launchedBy,
+  canSelfUpdate = true,
 }: UpdateSectionProps) {
   const { t } = useT("runtimes");
   const isManaged = launchedBy === "desktop";
@@ -213,15 +222,25 @@ export function UpdateSection({
             )}
 
             {hasUpdate && isOnline && !status && (
-              <Button
-                variant="outline"
-                size="xs"
-                onClick={handleUpdate}
-                disabled={updating}
-              >
-                <ArrowUpCircle className="h-3 w-3" />
-                {t(($) => $.update.action)}
-              </Button>
+              canSelfUpdate ? (
+                <Button
+                  variant="outline"
+                  size="xs"
+                  onClick={handleUpdate}
+                  disabled={updating}
+                >
+                  <ArrowUpCircle className="h-3 w-3" />
+                  {t(($) => $.update.action)}
+                </Button>
+              ) : (
+                <span
+                  className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+                  title={t(($) => $.update.protected_dir_tooltip)}
+                >
+                  <ShieldAlert className="h-3 w-3" />
+                  {t(($) => $.update.action)}
+                </span>
+              )
             )}
           </>
         )}

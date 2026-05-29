@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -96,6 +97,49 @@ func TestFindReleaseAsset(t *testing.T) {
 			t.Fatal("expected error, got nil")
 		}
 	})
+}
+
+// TestGitHubReleaseAPIURL verifies the release API URL points to the correct
+// repository (enmotech/multica, not the old multica-ai/multica).
+func TestGitHubReleaseAPIURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		path     string
+		wantSub  string
+		wantNot  string
+	}{
+		{
+			name:    "latest release URL uses enmotech org",
+			path:    "releases/latest",
+			wantSub: "enmotech/multica",
+			wantNot: "multica-ai",
+		},
+		{
+			name:    "tagged release URL uses enmotech org",
+			path:    "releases/tags/v1.2.3",
+			wantSub: "enmotech/multica",
+			wantNot: "multica-ai",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			url := releaseAPIURL(tt.path)
+			if !strings.Contains(url, tt.wantSub) {
+				t.Errorf("releaseAPIURL(%q) = %q, does not contain %q", tt.path, url, tt.wantSub)
+			}
+			if strings.Contains(url, tt.wantNot) {
+				t.Errorf("releaseAPIURL(%q) = %q, still references old org %q", tt.path, url, tt.wantNot)
+			}
+		})
+	}
+}
+
+// TestBrewTapFormula verifies the Homebrew formula references the correct tap.
+func TestBrewTapFormula(t *testing.T) {
+	want := "enmotech/homebrew-tap/multica"
+	if brewTapFormula != want {
+		t.Errorf("brewTapFormula = %q, want %q", brewTapFormula, want)
+	}
 }
 
 func TestUpdateDownloadTimeoutOrDefault(t *testing.T) {
