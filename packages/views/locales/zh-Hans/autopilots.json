@@ -13,7 +13,7 @@
     "last_run_empty": "--",
     "empty": {
       "title": "还没有自动化",
-      "hint": "为你的智能体安排周期性 task。从模板选一个，或从空白开始。"
+      "hint": "为你的智能体安排周期性任务。从模板选一个，或从空白开始。"
     }
   },
   "status": {
@@ -22,7 +22,7 @@
     "archived": "已归档"
   },
   "execution_mode": {
-    "create_issue": "创建 task",
+    "create_issue": "创建任务",
     "run_only": "仅运行"
   },
   "relative_date": {
@@ -91,7 +91,7 @@
     }
   },
   "run_status": {
-    "issue_created": "已创建 task",
+    "issue_created": "已创建任务",
     "running": "运行中",
     "skipped": "已跳过",
     "completed": "已完成",
@@ -104,7 +104,7 @@
     "api": "API"
   },
   "run": {
-    "issue_linked": "已关联 task",
+    "issue_linked": "已关联任务",
     "view_log": "查看执行日志",
     "skipped_group": {
       "label": "已跳过",
@@ -218,7 +218,7 @@
     "sr_edit": "编辑自动化",
     "header_create": "新建自动化",
     "header_edit": "编辑自动化",
-    "subtitle": "周期性的 AI task",
+    "subtitle": "周期性的 AI 任务",
     "expand": "展开",
     "collapse": "收起",
     "close": "关闭",
@@ -262,12 +262,12 @@
     "next_run_label": "下次运行：",
     "output_modes": {
       "create_issue": {
-        "label": "创建 task",
-        "description": "每次运行都创建一个可追踪的 task"
+        "label": "创建任务",
+        "description": "每次运行都创建一个可追踪的任务"
       },
       "run_only": {
         "label": "仅运行",
-        "description": "静默运行，不创建 task"
+        "description": "静默运行，不创建任务"
       }
     },
     "frequency_long": {

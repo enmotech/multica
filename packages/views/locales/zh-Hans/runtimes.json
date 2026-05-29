@@ -62,7 +62,7 @@
   "health": {
     "online": {
       "label": "在线",
-      "description": "最近 45 秒内收到心跳。可以派发 task。"
+      "description": "最近 45 秒内收到心跳。可以派发任务。"
     },
     "recently_lost": {
       "label": "最近失联",
@@ -115,11 +115,11 @@
       },
       "cascade": {
         "title_other": "归档 {{count}} 个智能体并删除该运行时？",
-        "description": "删除「{{name}}」。下列智能体将被归档并从可用工作流中移除，其排队中或运行中的 task 会被取消，随后运行时本身会被删除。",
-        "warning": "此操作具有破坏性。归档的智能体将从可用工作流中移除，其排队中或运行中的 task 会被取消。",
+        "description": "删除「{{name}}」。下列智能体将被归档并从可用工作流中移除，其排队中或运行中的任务会被取消，随后运行时本身会被删除。",
+        "warning": "此操作具有破坏性。归档的智能体将从可用工作流中移除，其排队中或运行中的任务会被取消。",
         "notice_runtime_has_active_agents": "自打开此弹窗后，又有新的活动智能体加入。请确认新方案后继续。",
         "notice_runtime_delete_plan_changed": "在弹窗打开期间，活动智能体集合发生了变化。请确认新方案后继续。",
-        "checkbox_other": "我已了解：这 {{count}} 个智能体将被归档，其排队中或运行中的 task 会被取消。",
+        "checkbox_other": "我已了解：这 {{count}} 个智能体将被归档，其排队中或运行中的任务会被取消。",
         "cancel": "取消",
         "confirm_other": "归档 {{count}} 个智能体并删除运行时",
         "submitting": "正在归档并删除...",
@@ -179,7 +179,7 @@
     "copy_aria": "复制",
     "cancel": "取消",
     "success_title": "运行时已连接！",
-    "success_description": "你的远程机器已注册为运行时。现在可以创建一个智能体，把 task 派发到它上。",
+    "success_description": "你的远程机器已注册为运行时。现在可以创建一个智能体，把任务派发到它上。",
     "view_runtime": "查看运行时",
     "create_agent": "创建智能体",
     "step1": "1. 安装 CLI",
