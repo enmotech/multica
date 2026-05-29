@@ -280,6 +280,7 @@ type ProviderName =
   | "openclaw"
   | "hermes"
   | "kimi"
+  | "kimi-code"
   | "kiro"
   | "pi"
   | "copilot"

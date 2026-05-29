@@ -203,6 +203,8 @@ export function ProviderLogo({
       return <CursorLogo className={className} />;
     case "kimi":
       return <KimiLogo className={className} />;
+    case "kimi-code":
+      return <KimiLogo className={className} />;
     case "kiro":
       return <KiroLogo className={className} />;
     case "gemini":

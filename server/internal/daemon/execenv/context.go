@@ -159,6 +159,10 @@ func resolveSkillsDir(workDir, provider string) (string, error) {
 		// Kimi Code CLI auto-discovers project-level skills from .kimi/skills/
 		// in the workdir. See https://moonshotai.github.io/kimi-cli/en/customization/skills.html
 		skillsDir = filepath.Join(workDir, ".kimi", "skills")
+	case "kimi-code":
+		// Kimi Code (standalone) auto-discovers project-level skills from
+		// .kimi-code/skills/ in the workdir.
+		skillsDir = filepath.Join(workDir, ".kimi-code", "skills")
 	case "kiro":
 		// Kiro CLI auto-discovers project-level skills from .kiro/skills/
 		// in the workdir.

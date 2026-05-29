@@ -118,6 +118,9 @@ func ListModels(ctx context.Context, providerType, executablePath string) ([]Mod
 		return cachedDiscovery(providerType, func() ([]Model, error) {
 			return discoverKimiModels(ctx, executablePath)
 		})
+	case "kimi-code":
+		// Kimi Code standalone — no dynamic model discovery.
+		return nil, nil
 	case "kiro":
 		return cachedDiscovery(providerType, func() ([]Model, error) {
 			return discoverKiroModels(ctx, executablePath)
