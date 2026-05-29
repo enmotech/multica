@@ -11,6 +11,26 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// canRuntimeSelfUpdate inspects the runtime's JSONB metadata and returns
+// whether the daemon reported it can replace its own binary. Returns true
+// when the field is absent (backward compatibility: old daemons that do not
+// send can_self_update are assumed capable of self-updating).
+func canRuntimeSelfUpdate(metadata []byte) bool {
+	if len(metadata) == 0 {
+		return true
+	}
+	var m struct {
+		CanSelfUpdate *bool `json:"can_self_update"`
+	}
+	if err := json.Unmarshal(metadata, &m); err != nil {
+		return true // malformed metadata → allow; daemon will surface any real error
+	}
+	if m.CanSelfUpdate == nil {
+		return true // field absent → backward-compatible allow
+	}
+	return *m.CanSelfUpdate
+}
+
 // ---------------------------------------------------------------------------
 // CLI update request store
 // ---------------------------------------------------------------------------
@@ -220,6 +240,11 @@ func (h *Handler) InitiateUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, ok := h.requireWorkspaceMember(w, r, uuidToString(rt.WorkspaceID), "runtime not found"); !ok {
+		return
+	}
+
+	if !canRuntimeSelfUpdate(rt.Metadata) {
+		writeError(w, http.StatusConflict, "CLI is installed in a protected directory; ask your system administrator to update using sudo")
 		return
 	}
 

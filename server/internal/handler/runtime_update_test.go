@@ -6,6 +6,49 @@ import (
 	"time"
 )
 
+// ---------------------------------------------------------------------------
+// canRuntimeSelfUpdate
+// ---------------------------------------------------------------------------
+
+// TestCanRuntimeSelfUpdate_missingField verifies backward compatibility:
+// runtimes registered before the can_self_update field was added (metadata
+// absent or field omitted) must still be allowed to update.
+func TestCanRuntimeSelfUpdate_missingField(t *testing.T) {
+	cases := []struct {
+		name     string
+		metadata []byte
+	}{
+		{"nil metadata", nil},
+		{"empty JSON object", []byte(`{}`)},
+		{"metadata without field", []byte(`{"cli_version":"v1.0.0","launched_by":"user"}`)},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if !canRuntimeSelfUpdate(tc.metadata) {
+				t.Errorf("canRuntimeSelfUpdate(%s) = false, want true (field absent → default allow)", tc.name)
+			}
+		})
+	}
+}
+
+// TestCanRuntimeSelfUpdate_false verifies that a daemon reporting
+// can_self_update=false (binary in a protected directory) is blocked.
+func TestCanRuntimeSelfUpdate_false(t *testing.T) {
+	metadata := []byte(`{"can_self_update": false, "cli_version": "v1.2.3"}`)
+	if canRuntimeSelfUpdate(metadata) {
+		t.Error("canRuntimeSelfUpdate with can_self_update=false returned true, want false")
+	}
+}
+
+// TestCanRuntimeSelfUpdate_true verifies that a daemon explicitly reporting
+// can_self_update=true is allowed.
+func TestCanRuntimeSelfUpdate_true(t *testing.T) {
+	metadata := []byte(`{"can_self_update": true, "cli_version": "v1.2.3"}`)
+	if !canRuntimeSelfUpdate(metadata) {
+		t.Error("canRuntimeSelfUpdate with can_self_update=true returned false, want true")
+	}
+}
+
 func TestInMemoryUpdateStore_HasPending(t *testing.T) {
 	ctx := context.Background()
 	store := NewInMemoryUpdateStore()

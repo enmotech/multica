@@ -128,6 +128,7 @@
     "retry": "Retry",
     "unknown_error": "Unknown error",
     "initiate_failed": "Failed to initiate update",
+    "protected_dir_tooltip": "CLI is installed in a protected directory. Please ask your system administrator to update using sudo.",
     "status": {
       "pending": "Waiting for daemon...",
       "running": "Updating...",

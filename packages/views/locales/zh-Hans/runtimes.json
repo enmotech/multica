@@ -123,6 +123,7 @@
     "retry": "重试",
     "unknown_error": "未知错误",
     "initiate_failed": "启动更新失败",
+    "protected_dir_tooltip": "CLI 安装在受保护目录，请联系系统管理员使用 sudo 权限执行更新。",
     "status": {
       "pending": "等待守护进程...",
       "running": "更新中...",
