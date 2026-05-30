@@ -95,6 +95,75 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
 
+      - name: Generate version.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.verify.outputs.tag_name }}"
+          VERSION="${TAG#v}"
+          cat > dist/version.json <<EOF
+          {
+            "version": "${VERSION}",
+            "tag": "${TAG}",
+            "release_url": "https://github.com/${{ github.repository }}/releases/tag/${TAG}",
+            "download_base": "https://${{ secrets.OSS_BUCKET }}.${{ secrets.OSS_ENDPOINT }}/tools/multica"
+          }
+          EOF
+
+      - name: Upload to OSS
+        shell: bash
+        env:
+          OSS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          TAG: ${{ needs.verify.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+
+          oss_put() {
+            local local_path="$1"
+            local oss_key="$2"
+            local content_type="${3:-application/octet-stream}"
+            local cache_control="${4:-}"
+
+            local date
+            date=$(LC_ALL=C date -u +"%a, %d %b %Y %H:%M:%S GMT")
+            local string_to_sign="PUT\n\n${content_type}\n${date}\n/${OSS_BUCKET}/${oss_key}"
+            local signature
+            signature=$(printf "${string_to_sign}" | openssl dgst -sha1 -hmac "${OSS_KEY_SECRET}" -binary | base64)
+
+            local extra_headers=()
+            if [[ -n "${cache_control}" ]]; then
+              extra_headers+=(-H "Cache-Control: ${cache_control}")
+            fi
+
+            local http_code
+            http_code=$(curl -s -o /tmp/oss_resp.txt -w "%{http_code}" \
+              -X PUT \
+              -H "Date: ${date}" \
+              -H "Content-Type: ${content_type}" \
+              -H "Authorization: OSS ${OSS_KEY_ID}:${signature}" \
+              "${extra_headers[@]}" \
+              --data-binary "@${local_path}" \
+              "https://${OSS_BUCKET}.${OSS_ENDPOINT}/${oss_key}")
+
+            if [[ "${http_code}" != "200" ]]; then
+              echo "::error::OSS upload failed [${http_code}] for ${oss_key}: $(cat /tmp/oss_resp.txt)"
+              exit 1
+            fi
+            echo "  uploaded ${oss_key} [${http_code}]"
+          }
+
+          for f in dist/*.tar.gz dist/*.zip dist/checksums.txt; do
+            [[ -f "$f" ]] || continue
+            oss_put "$f" "tools/multica/${VERSION}/$(basename $f)"
+          done
+
+          oss_put "dist/version.json" "tools/multica/version.json" \
+            "application/json" "no-cache, no-store"
+
   # Multi-arch images are built natively per platform on dedicated runners
   # (amd64 on ubuntu-latest, arm64 on ubuntu-24.04-arm) and merged into a
   # manifest list. This avoids QEMU emulation, which was making the Next.js
