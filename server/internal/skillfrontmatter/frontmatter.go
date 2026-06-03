@@ -11,75 +11,86 @@ type frontmatterData struct {
 	Description string `yaml:"description"`
 }
 
-// Parse extracts the name and description from YAML frontmatter in a SKILL.md
-// file. Returns empty strings if the content has no valid frontmatter block.
+// Parse extracts name and description from YAML frontmatter in a SKILL.md file.
+// Returns empty strings if the content has no valid frontmatter block.
 func Parse(content string) (name, description string) {
-	_, _, name, description = parseRaw(content)
-	return name, description
+	name, description, _ = ParseBody(content)
+	return
 }
 
 // ParseBody extracts frontmatter fields and returns the body after the closing
-// --- delimiter.
+// --- delimiter. If there is no valid frontmatter, it returns ("", "", content).
 func ParseBody(content string) (name, description, body string) {
-	bodyStart, _, name, description := parseRaw(content)
-	if bodyStart < 0 {
-		return name, description, content
+	fm, bodyStart, ok := frontmatterBounds(content)
+	if !ok {
+		return "", "", content
 	}
-	return name, description, content[bodyStart:]
+
+	var data frontmatterData
+	if err := yaml.Unmarshal([]byte(fm), &data); err != nil {
+		data.Name, data.Description = extractFromRaw(fm)
+	}
+
+	if bodyStart < len(content) {
+		body = content[bodyStart:]
+	}
+	return data.Name, data.Description, body
 }
 
-func parseRaw(content string) (bodyStart int, bodyEnd int, name, description string) {
+// frontmatterBounds returns the raw YAML frontmatter text and the byte offset
+// where the body begins. Returns ok=false when no frontmatter is present.
+func frontmatterBounds(content string) (fm string, bodyStart int, ok bool) {
 	if !strings.HasPrefix(content, "---") {
-		return -1, -1, "", ""
+		return "", 0, false
 	}
 	rest := content[3:]
-	// Skip the newline after opening ---
 	if len(rest) > 0 && rest[0] == '\n' {
 		rest = rest[1:]
 	}
 	end := strings.Index(rest, "\n---")
 	if end < 0 {
-		return -1, -1, "", ""
+		return "", 0, false
 	}
-	fm := rest[:end]
-
-	var data frontmatterData
-	if err := yaml.Unmarshal([]byte(fm), &data); err != nil {
-		return -1, -1, "", ""
+	fm = rest[:end]
+	bodyStart = 3 + 1 + end + len("\n---")
+	if bodyStart < len(content) && content[bodyStart] == '\n' {
+		bodyStart++
 	}
-
-	// Body starts after the closing --- and its trailing newline
-	bodyOffset := 3 + 1 + end + len("\n---")
-	if bodyOffset < len(content) && content[bodyOffset] == '\n' {
-		bodyOffset++
-	}
-	return bodyOffset, len(content), data.Name, data.Description
+	return fm, bodyStart, true
 }
 
-// Build creates a SKILL.md string with YAML frontmatter and body content.
-// If description is empty, it is omitted from the frontmatter.
-func Build(name, description, body string) string {
-	var sb strings.Builder
-	sb.WriteString("---\n")
-	sb.WriteString("name: ")
-	sb.WriteString(quoteYAMLString(name))
-	sb.WriteByte('\n')
-	if description != "" {
-		sb.WriteString("description: ")
-		sb.WriteString(quoteYAMLString(description))
-		sb.WriteByte('\n')
+// extractFromRaw pulls name and description directly from raw frontmatter text
+// when strict YAML parsing fails (e.g. unquoted colons inside scalar values).
+func extractFromRaw(fm string) (name, description string) {
+	for _, line := range strings.Split(fm, "\n") {
+		// Skip empty or indented lines to avoid misinterpreting nested keys
+		// as top-level fields like name or description.
+		if line == "" || line[0] == ' ' || line[0] == '\t' {
+			continue
+		}
+		if k, v, ok := strings.Cut(line, ":"); ok {
+			v = strings.TrimSpace(v)
+			switch strings.TrimSpace(k) {
+			case "name":
+				name = strings.Trim(v, `"'`)
+			case "description":
+				description = strings.Trim(v, `"'`)
+			}
+		}
 	}
-	sb.WriteString("---\n\n")
-	sb.WriteString(body)
-	return sb.String()
+	return
 }
 
-// quoteYAMLString produces a safe YAML scalar.
-func quoteYAMLString(s string) string {
-	if s == "" {
-		return `""`
-	}
-	var node yaml.Node
-	node.SetString(s)
-	return node.Value
+// HasFrontmatter reports whether content starts with a YAML frontmatter block
+// that contains a non-empty "name" field.
+func HasFrontmatter(content string) bool {
+	name, _ := Parse(content)
+	return strings.TrimSpace(name) != ""
+}
+
+// FrontmatterBody returns the raw YAML text between the opening --- and closing
+// --- delimiters. Returns ("", false) when no frontmatter is present.
+func FrontmatterBody(content string) (string, bool) {
+	fm, _, ok := frontmatterBounds(content)
+	return fm, ok
 }

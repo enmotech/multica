@@ -1,7 +1,6 @@
 package skillfrontmatter
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -54,6 +53,24 @@ func TestParse(t *testing.T) {
 			wantName: "My Skill",
 			wantDesc: "",
 		},
+		{
+			name:     "description with quoted colon",
+			input:    "---\nname: quoted-skill\ndescription: \"Core analysis: TNS error checking\"\n---\n",
+			wantName: "quoted-skill",
+			wantDesc: "Core analysis: TNS error checking",
+		},
+		{
+			name:     "description with unquoted colon",
+			input:    "---\nname: test-skill\ndescription: Some tool. Core analysis: TNS error checking.\n---\n",
+			wantName: "test-skill",
+			wantDesc: "Some tool. Core analysis: TNS error checking.",
+		},
+		{
+			name:     "nested keys do not overwrite top-level name",
+			input:    "---\nname: top-level\nconfig:\n  name: nested\ndescription: desc\n---\n",
+			wantName: "top-level",
+			wantDesc: "desc",
+		},
 	}
 
 	for _, tt := range tests {
@@ -70,39 +87,121 @@ func TestParse(t *testing.T) {
 }
 
 func TestParseBody(t *testing.T) {
-	input := "---\nname: Test\n---\n\nThis is the body."
-	name, desc, body := ParseBody(input)
-	if name != "Test" {
-		t.Errorf("ParseBody() name = %q, want %q", name, "Test")
+	tests := []struct {
+		name     string
+		input    string
+		wantName string
+		wantDesc string
+		wantBody string
+	}{
+		{
+			name:     "standard frontmatter",
+			input:    "---\nname: Code Reviewer\ndescription: Reviews code\n---\n\nSkill body",
+			wantName: "Code Reviewer",
+			wantDesc: "Reviews code",
+			wantBody: "\nSkill body",
+		},
+		{
+			name:     "no frontmatter returns full content as body",
+			input:    "Just content\nNo frontmatter",
+			wantName: "",
+			wantDesc: "",
+			wantBody: "Just content\nNo frontmatter",
+		},
+		{
+			name:     "description with unquoted colon",
+			input:    "---\nname: test-skill\ndescription: Some tool. Core analysis: TNS error checking.\n---\n\nBody",
+			wantName: "test-skill",
+			wantDesc: "Some tool. Core analysis: TNS error checking.",
+			wantBody: "\nBody",
+		},
 	}
-	if desc != "" {
-		t.Errorf("ParseBody() description = %q, want empty", desc)
-	}
-	wantBody := "This is the body."
-	if strings.TrimSpace(body) != wantBody {
-		t.Errorf("ParseBody() body = %q, want %q", strings.TrimSpace(body), wantBody)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotName, gotDesc, gotBody := ParseBody(tt.input)
+			if gotName != tt.wantName {
+				t.Errorf("ParseBody() name = %q, want %q", gotName, tt.wantName)
+			}
+			if gotDesc != tt.wantDesc {
+				t.Errorf("ParseBody() description = %q, want %q", gotDesc, tt.wantDesc)
+			}
+			if gotBody != tt.wantBody {
+				t.Errorf("ParseBody() body = %q, want %q", gotBody, tt.wantBody)
+			}
+		})
 	}
 }
 
-func TestBuild(t *testing.T) {
-	result := Build("My Skill", "A description", "Body content")
-	if !strings.HasPrefix(result, "---\n") {
-		t.Error("Build() should start with ---")
+func TestFrontmatterBody(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		want   string
+		wantOk bool
+	}{
+		{
+			name:   "standard frontmatter",
+			input:  "---\nname: Code Reviewer\ndescription: Reviews code\n---\n\nSkill body",
+			want:   "name: Code Reviewer\ndescription: Reviews code",
+			wantOk: true,
+		},
+		{
+			name:   "no frontmatter",
+			input:  "Just content\nNo frontmatter",
+			want:   "",
+			wantOk: false,
+		},
+		{
+			name:   "unclosed frontmatter",
+			input:  "---\nname: Foo",
+			want:   "",
+			wantOk: false,
+		},
 	}
-	if !strings.Contains(result, "name: My Skill") {
-		t.Error("Build() should contain name")
-	}
-	if !strings.Contains(result, "description: A description") {
-		t.Error("Build() should contain description")
-	}
-	if !strings.Contains(result, "---\n\nBody content") {
-		t.Error("Build() should contain body after closing ---")
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := FrontmatterBody(tt.input)
+			if ok != tt.wantOk {
+				t.Errorf("FrontmatterBody() ok = %v, want %v", ok, tt.wantOk)
+			}
+			if got != tt.want {
+				t.Errorf("FrontmatterBody() = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }
 
-func TestBuildEmptyDescription(t *testing.T) {
-	result := Build("My Skill", "", "Body")
-	if strings.Contains(result, "description:") {
-		t.Error("Build() should not include description when empty")
+func TestHasFrontmatter(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{
+			name:  "has frontmatter with name",
+			input: "---\nname: Code Reviewer\n---\n",
+			want:  true,
+		},
+		{
+			name:  "no frontmatter",
+			input: "Just content",
+			want:  false,
+		},
+		{
+			name:  "empty name",
+			input: "---\nname:\n---\n",
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := HasFrontmatter(tt.input)
+			if got != tt.want {
+				t.Errorf("HasFrontmatter() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
