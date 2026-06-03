@@ -119,21 +119,20 @@ func loadSkillFromDir(dir string) (*skillLoadResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read SKILL.md: %w", err)
 	}
-	content := string(raw)
-	name, description := skillfrontmatter.Parse(content)
+	name, description, body := skillfrontmatter.ParseBody(string(raw))
 	if name == "" {
 		return nil, fmt.Errorf("skill name is required in SKILL.md frontmatter (%s)", dir)
 	}
-	
+
 	files, err := collectSkillFiles(dir)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &skillLoadResult{
 		Name:        name,
 		Description: description,
-		Content:     content,
+		Content:     strings.TrimSpace(body),
 		Files:       files,
 	}, nil
 }
